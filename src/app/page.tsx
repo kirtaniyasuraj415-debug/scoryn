@@ -1,4 +1,5 @@
 import { AuditBox } from '@/components/landing/audit-box';
+import { HeroShowcase } from '@/components/landing/hero-showcase';
 import { Navbar } from '@/components/landing/navbar';
 import {
   AuditCategoriesSection,
@@ -13,45 +14,39 @@ import {
   WorkflowBentoSection
 } from '@/components/landing/sections';
 import { Badge } from '@/components/ui/badge';
-import { ArrowDown, BarChart3, FileText, ShieldCheck } from 'lucide-react';
 
 export default function Home() {
-  return <main className="min-h-screen bg-black text-white">
-    <section className="px-0 pb-0 pt-0">
-      <div className="relative min-h-[790px] overflow-hidden bg-black text-white sm:min-h-[880px]">
-        <div className="hero-grid pointer-events-none absolute inset-0 opacity-70" />
-        <div className="noise pointer-events-none absolute inset-0 opacity-20" />
-        <div className="pointer-events-none absolute left-1/2 top-[55%] h-[470px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full gradient-orb opacity-42 blur-2xl" />
-        <Navbar />
-        <div className="relative mx-auto flex max-w-5xl flex-col items-center px-5 pb-20 pt-20 text-center sm:pt-28">
-          <Badge className="mb-7 border-white/15 bg-black/30 text-zinc-300">Website audit → AI explanation → branded report</Badge>
-          <h1 className="font-heading max-w-5xl text-balance text-[clamp(2.7rem,7vw,6.7rem)] font-bold leading-[.95] tracking-[-.055em]">
-            Client websites ka audit <span className="text-rose">30 seconds</span> mein, tumhare branding ke saath.
-          </h1>
-          <p className="mt-7 max-w-2xl text-balance text-sm leading-7 text-zinc-400 sm:text-base">
-            Freelancers aur web developers ke liye sales-ready website reports. Technical data ko clear business impact mein convert karo.
-          </p>
-          <div className="mt-12 w-full">
-            <AuditBox />
-            <p className="mt-4 text-xs text-zinc-600">Demo audit login ke bina • PDF account ke baad unlock hota hai</p>
-          </div>
+  return <main className="min-h-screen overflow-x-hidden bg-black text-white">
+    <section className="relative overflow-hidden bg-black">
+      <div className="hero-grid pointer-events-none absolute inset-0 opacity-55" />
+      <div className="noise pointer-events-none absolute inset-0 opacity-[.14]" />
+      <div className="hero-ambient-glow pointer-events-none absolute left-1/2 top-[410px] h-[520px] w-[880px] -translate-x-1/2 rounded-full" />
 
-          <div className="mt-16 grid w-full max-w-3xl grid-cols-3 gap-3 text-left">
-            <div className="rounded-2xl border border-white/[.07] bg-black/40 p-4">
-              <BarChart3 className="mb-8 h-4 w-4 text-rose" />
-              <p className="text-xs text-zinc-500">4 audit categories</p>
-            </div>
-            <div className="rounded-2xl border border-white/[.07] bg-black/40 p-4">
-              <ShieldCheck className="mb-8 h-4 w-4 text-rose" />
-              <p className="text-xs text-zinc-500">Server-side API keys</p>
-            </div>
-            <div className="rounded-2xl border border-white/[.07] bg-black/40 p-4">
-              <FileText className="mb-8 h-4 w-4 text-rose" />
-              <p className="text-xs text-zinc-500">Client-ready PDF</p>
-            </div>
-          </div>
-          <ArrowDown className="mt-14 h-4 w-4 text-zinc-700" />
+      <Navbar />
+
+      <div className="relative mx-auto flex max-w-6xl flex-col items-center px-5 pb-14 pt-14 text-center sm:px-8 sm:pt-20 lg:pt-24">
+        <div className="hero-eyebrow-line mb-6 flex items-center gap-3 sm:mb-7">
+          <span className="h-px w-10 bg-gradient-to-r from-transparent to-white/25 sm:w-16" />
+          <Badge className="border-white/[.08] bg-black/40 px-3 py-1.5 text-[9px] font-medium uppercase tracking-[.18em] text-zinc-450 sm:text-[10px]">
+            Simplify your client audit workflow
+          </Badge>
+          <span className="h-px w-10 bg-gradient-to-l from-transparent to-white/25 sm:w-16" />
         </div>
+
+        <h1 className="font-heading max-w-[860px] text-balance text-[2.2rem] font-bold leading-[.99] tracking-[-.05em] sm:text-[3.5rem] md:text-[4.2rem] lg:text-[4.7rem]">
+          Client websites ka audit <span className="hero-accent-text">30 seconds</span> mein, tumhare branding ke saath.
+        </h1>
+
+        <p className="mt-5 max-w-[620px] text-balance text-[13px] leading-6 text-zinc-500 sm:mt-6 sm:text-[15px] sm:leading-7">
+          PageSpeed data ko clear business language mein convert karo, branded report banao, aur client ko ek professional sales-ready deliverable bhejo.
+        </p>
+
+        <div className="mt-8 w-full sm:mt-9">
+          <AuditBox />
+          <p className="mt-3 text-[10px] text-zinc-700 sm:text-xs">Demo audit login ke bina • PDF account ke baad unlock hota hai</p>
+        </div>
+
+        <HeroShowcase />
       </div>
     </section>
 
