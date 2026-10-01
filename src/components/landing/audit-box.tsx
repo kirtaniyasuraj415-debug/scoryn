@@ -38,7 +38,7 @@ export function AuditBox() {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') run(); }}
             placeholder="Paste client website URL..."
-            className="h-12 w-full bg-transparent px-3 text-[15px] text-white outline-none placeholder:text-zinc-650 sm:h-14 sm:text-base"
+            className="h-12 w-full bg-transparent px-3 text-[15px] text-white outline-none placeholder:text-zinc-600 sm:h-14 sm:text-base"
           />
           <div className="hidden items-center gap-2 px-3 pb-1 text-[10px] text-zinc-600 sm:flex">
             <Globe2 className="h-3.5 w-3.5" />
