@@ -1,43 +1,81 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function memberId(workspaceId) {
+      return workspaceId + '_' + request.auth.uid;
+    }
+
     function ownsWorkspace(workspaceId) {
-      return signedIn() && exists(/databases/$(database)/documents/workspaceMembers/$(workspaceId + '_' + request.auth.uid));
+      return signedIn() &&
+        exists(/databases/$(database)/documents/workspaceMembers/$(memberId(workspaceId)));
+    }
+
+    function isWorkspaceOwner(workspaceId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.ownerId == request.auth.uid;
     }
 
     match /users/{userId} {
-      allow read, update: if signedIn() && request.auth.uid == userId;
-      allow create: if signedIn() && request.auth.uid == userId;
+      allow read, create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
     }
 
     match /workspaces/{workspaceId} {
-      allow read: if ownsWorkspace(workspaceId);
-      allow write: if false;
+      allow read: if ownsWorkspace(workspaceId) || resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn() &&
+        workspaceId == 'ws_' + request.auth.uid &&
+        request.resource.data.ownerId == request.auth.uid;
+      allow update: if isWorkspaceOwner(workspaceId);
+      allow delete: if false;
     }
 
-    match /workspaceMembers/{memberId} {
+    match /workspaceMembers/{memberDocId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow write: if false;
+      allow create: if signedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.role == 'OWNER' &&
+        memberDocId == request.resource.data.workspaceId + '_' + request.auth.uid &&
+        request.resource.data.workspaceId == 'ws_' + request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /branding/{workspaceId} {
+      allow read: if ownsWorkspace(workspaceId);
+      allow create, update: if signedIn() &&
+        workspaceId == 'ws_' + request.auth.uid &&
+        request.resource.data.workspaceId == workspaceId;
+      allow delete: if false;
     }
 
     match /audits/{id} {
-      allow read: if ownsWorkspace(resource.data.workspaceId);
-      allow write: if false;
+      allow read, create, update: if signedIn() &&
+        ownsWorkspace(request.resource.data.workspaceId);
+      allow read: if signedIn() && ownsWorkspace(resource.data.workspaceId);
+      allow delete: if false;
     }
 
     match /clients/{id} {
-      allow read: if ownsWorkspace(resource.data.workspaceId);
-      allow write: if false;
+      allow read: if signedIn() && ownsWorkspace(resource.data.workspaceId);
+      allow create, update: if signedIn() &&
+        ownsWorkspace(request.resource.data.workspaceId);
+      allow delete: if false;
     }
 
     match /reports/{id} {
-      allow read: if resource.data.isPublic == true || ownsWorkspace(resource.data.workspaceId);
-      allow write: if false;
+      allow read: if resource.data.isPublic == true ||
+        (signedIn() && ownsWorkspace(resource.data.workspaceId));
+      allow create, update: if signedIn() &&
+        ownsWorkspace(request.resource.data.workspaceId);
+      allow delete: if false;
     }
 
-    match /branding/{id} {
-      allow read: if ownsWorkspace(id);
+    match /usage/{id} {
+      allow read: if signedIn() && ownsWorkspace(resource.data.workspaceId);
       allow write: if false;
     }
 
