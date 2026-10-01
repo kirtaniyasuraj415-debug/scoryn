@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #050505; color: white; font-family: Arial, Helvetica, sans-serif; }
+::selection { background: rgba(197,29,111,.48); color: white; }
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+.audit-shell {
+  position: relative;
+  isolation: isolate;
+}
+.audit-shell::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -2;
+  border-radius: 24px;
+  background: conic-gradient(from var(--angle), rgba(197,29,111,.1), #c51d6f, #f0a4cf, rgba(255,255,255,.25), #75103f, rgba(197,29,111,.1));
+  animation: spin-border 5s linear infinite;
+}
+.audit-shell::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 23px;
+  background: #0b0a0b;
+}
+@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes spin-border { to { --angle: 360deg; } }
+
+.gradient-orb {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(240,164,207,.95) 0 8%, rgba(197,29,111,.9) 16%, rgba(116,9,57,.6) 34%, rgba(197,29,111,.15) 52%, transparent 72%);
+  filter: blur(2px);
+}
+
+.noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-shell::before { animation: none; }
+  html { scroll-behavior: auto; }
+}

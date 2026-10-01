@@ -1,0 +1,2 @@
+import { getFirebaseAdmin } from '@/lib/firebase/admin';
+export async function loadReportData(auditId:string){const {db}=getFirebaseAdmin();const [a,issues]=await Promise.all([db.collection('audits').doc(auditId).get(),db.collection('auditIssues').where('auditId','==',auditId).limit(80).get()]);if(!a.exists)throw new Error('Report not found');const d=a.data()!;const branding=await db.collection('branding').doc(d.workspaceId).get();return {id:auditId,audit:d,branding:branding.data()||{},issues:issues.docs.map(x=>x.data())}}
