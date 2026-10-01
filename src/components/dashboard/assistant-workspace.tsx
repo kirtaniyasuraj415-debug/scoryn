@@ -175,7 +175,7 @@ export function AssistantWorkspace({displayName}:{displayName?:string|null}){
     </div>
 
     <div className="mx-auto mt-8 w-full max-w-[760px]">
-      <div className="mb-3 flex items-center gap-2 text-xs text-zinc-650"><MessageSquareText className="h-4 w-4"/>Recent activity</div>
+      <div className="mb-3 flex items-center gap-2 text-xs text-zinc-600"><MessageSquareText className="h-4 w-4"/>Recent activity</div>
       <div className="rounded-2xl border border-white/[.05] bg-[#090909]">
         {(messages.filter(m=>m.role==='user').slice(-3).reverse().length?messages.filter(m=>m.role==='user').slice(-3).reverse():[
           {role:'user' as const,content:'Your recent audits and chats will appear here.'}
