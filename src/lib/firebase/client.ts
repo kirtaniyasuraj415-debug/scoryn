@@ -1,23 +1,37 @@
 import { getApps, initializeApp } from 'firebase/app';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const config = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-};
+export const firebaseConfig = {
+  apiKey: 'AIzaSyAFHPAgBKZcxR5yqfmJ-iLTvxTwZXFncOo',
+  authDomain: 'scoryn-f9c53.firebaseapp.com',
+  projectId: 'scoryn-f9c53',
+  storageBucket: 'scoryn-f9c53.firebasestorage.app',
+  messagingSenderId: '943764683277',
+  appId: '1:943764683277:web:82962e055111403d29f344',
+  measurementId: 'G-DZ9Z9RVGZ0'
+} as const;
 
 export function firebaseClientReady() {
-  return Boolean(config.apiKey && config.authDomain && config.projectId && config.appId);
+  return true;
 }
 
 export function getFirebaseClient() {
-  if (!firebaseClientReady()) throw new Error('Firebase web configuration is missing.');
-  const app = getApps()[0] ?? initializeApp(config);
-  return { app, auth: getAuth(app), db: getFirestore(app), storage: getStorage(app) };
+  const app = getApps()[0] ?? initializeApp(firebaseConfig);
+  return {
+    app,
+    auth: getAuth(app),
+    db: getFirestore(app),
+    storage: getStorage(app)
+  };
+}
+
+export async function getFirebaseAnalytics() {
+  if (typeof window === 'undefined') return null;
+  const supported = await isSupported();
+  if (!supported) return null;
+  const { app } = getFirebaseClient();
+  return getAnalytics(app);
 }
