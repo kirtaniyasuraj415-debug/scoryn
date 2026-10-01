@@ -56,7 +56,7 @@ export function HeroShowcase() {
                 ['91', 'Best Practices']
               ].map(([score, label]) => <div key={label} className="rounded-xl border border-white/[.055] bg-white/[.018] p-3">
                 <div className="font-heading text-xl font-bold text-zinc-100">{score}</div>
-                <div className="mt-1 text-[8px] leading-4 text-zinc-650">{label}</div>
+                <div className="mt-1 text-[8px] leading-4 text-zinc-600">{label}</div>
               </div>)}
             </div>
 
@@ -97,7 +97,7 @@ export function HeroShowcase() {
                 </div>
               </div>
               <div className="mt-4 rounded-xl border border-white/[.055] bg-white/[.015] p-4">
-                <p className="text-[9px] leading-5 text-zinc-450">“The main visual appears later than ideal on mobile. Improving it can make the website feel faster before a visitor reaches the offer.”</p>
+                <p className="text-[9px] leading-5 text-zinc-400">“The main visual appears later than ideal on mobile. Improving it can make the website feel faster before a visitor reaches the offer.”</p>
               </div>
             </div>
 
