@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+  --surface: #070707;
+  --surface-2: #0d0b0c;
+  --surface-3: #151113;
+  --border: rgba(255,255,255,.08);
+  --muted: #777077;
+  --magenta: #c51d6f;
+  --rose: #f0a4cf;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: #050505; color: white; font-family: Arial, Helvetica, sans-serif; }
+body {
+  margin: 0;
+  background: #050505;
+  color: white;
+  font-family: var(--font-dm-sans), sans-serif;
+  font-weight: 400;
+}
+h1,h2,h3,h4,h5,h6,.font-heading {
+  font-family: var(--font-inter), sans-serif;
+}
 ::selection { background: rgba(197,29,111,.48); color: white; }
 
 .hero-grid {
@@ -50,7 +69,108 @@ body { margin: 0; background: #050505; color: white; font-family: Arial, Helveti
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
 }
 
+.reference-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.075);
+  background:
+    linear-gradient(180deg, rgba(26,20,23,.98) 0%, rgba(14,12,13,.99) 74%),
+    #0d0b0c;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 -1px 0 rgba(197,29,111,.08),
+    0 34px 90px rgba(0,0,0,.34);
+}
+.reference-card::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: 50%;
+  bottom: -34%;
+  width: 88%;
+  height: 62%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at center,
+      rgba(240,164,207,.42) 0%,
+      rgba(197,29,111,.25) 22%,
+      rgba(119,10,59,.12) 46%,
+      transparent 72%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+.reference-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.045), transparent 24% 72%, rgba(197,29,111,.04));
+}
+
+.reference-card-soft::before {
+  opacity: .55;
+  bottom: -42%;
+}
+
+.mock-panel {
+  position: relative;
+  border: 1px solid rgba(255,255,255,.085);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.008)),
+    #0b0a0b;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 18px 42px rgba(0,0,0,.48),
+    0 0 45px rgba(197,29,111,.065);
+  transform: perspective(1000px) rotateX(3deg) rotateY(-2deg) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.reference-card:hover .mock-panel {
+  transform: perspective(1000px) rotateX(1deg) rotateY(0deg) translateY(-3px);
+  border-color: rgba(240,164,207,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 24px 55px rgba(0,0,0,.52),
+    0 0 64px rgba(197,29,111,.10);
+}
+
+.mock-panel-right {
+  transform: perspective(1000px) rotateX(3deg) rotateY(2deg) translateZ(0);
+}
+.reference-card:hover .mock-panel-right {
+  transform: perspective(1000px) rotateX(1deg) rotateY(0deg) translateY(-3px);
+}
+
+.glow-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240,164,207,.45), rgba(255,255,255,.15), transparent);
+  box-shadow: 0 0 20px rgba(197,29,111,.22);
+}
+
+.card-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.score-bar {
+  background: linear-gradient(90deg, rgba(197,29,111,.95), rgba(240,164,207,.85));
+  box-shadow: 0 0 18px rgba(197,29,111,.28);
+}
+
+.ambient-line {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), rgba(240,164,207,.42), rgba(255,255,255,.08), transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .audit-shell::before { animation: none; }
+  .mock-panel, .reference-card:hover .mock-panel, .mock-panel-right, .reference-card:hover .mock-panel-right { transform: none; }
   html { scroll-behavior: auto; }
 }
