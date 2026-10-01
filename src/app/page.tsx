@@ -5,9 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowDown, BarChart3, FileText, ShieldCheck } from 'lucide-react';
 
 export default function Home() {
-  return <main className="min-h-screen bg-canvas text-black">
-    <section className="px-3 pb-3 pt-3 sm:px-5 sm:pt-5">
-      <div className="relative min-h-[780px] overflow-hidden rounded-[30px] bg-black text-white sm:min-h-[860px]">
+  return <main className="min-h-screen bg-black text-black">
+    <section className="px-0 pb-0 pt-0">
+      <div className="relative min-h-[780px] overflow-hidden bg-black text-white sm:min-h-[860px]">
         <div className="hero-grid pointer-events-none absolute inset-0 opacity-70" />
         <div className="noise pointer-events-none absolute inset-0 opacity-25" />
         <div className="pointer-events-none absolute left-1/2 top-[53%] h-[430px] w-[780px] -translate-x-1/2 -translate-y-1/2 rounded-full gradient-orb opacity-45 blur-2xl" />
