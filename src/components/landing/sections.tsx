@@ -318,21 +318,39 @@ export function ReportPreviewSection() {
 
 export function UseCasesSection() {
   const cards = [
-    [Smartphone, 'Cold outreach', 'Prospect ki existing site audit karke generic DM ki jagah real proof bhejo.'],
-    [Monitor, 'Redesign pitch', 'Before/after conversation ko scores, issues aur priorities ke around structure karo.'],
-    [Users, 'Existing clients', 'Monthly ya quarterly website health report ko branded deliverable bana do.']
+    ['01', 'Cold outreach', 'Prospect ki existing website ko audit karke generic DM ki jagah real proof aur clear next step bhejo.'],
+    ['02', 'Redesign pitch', 'Scores, priority issues aur business impact ke saath redesign conversation ko stronger banao.'],
+    ['03', 'Existing clients', 'Monthly ya quarterly website health report ko premium branded deliverable mein convert karo.']
   ] as const;
 
-  return <section className="border-y border-white/[.05] bg-[#070707]">
-    <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8">
+  return <section className="numbers-reference-section border-y border-white/[.045] bg-[#050505]">
+    <div className="mx-auto max-w-[980px] px-5 py-24 sm:px-8 lg:py-32">
       <SectionLabel>Made for service businesses</SectionLabel>
-      <h2 className="mx-auto max-w-3xl text-center font-heading text-3xl font-bold tracking-[-.04em] sm:text-5xl">Use Scoryn before the sale, during the pitch and after the project</h2>
-      <div className="mt-12 grid gap-3 md:grid-cols-3">
-        {cards.map(([Icon,title,desc]) => <div key={title} className="reference-card reference-card-soft rounded-[24px] p-6">
-          <div className="grid h-11 w-11 place-items-center rounded-full border border-magenta/15 bg-magenta/[.05] text-rose"><Icon className="h-5 w-5" /></div>
-          <h3 className="mt-14 font-heading text-xl font-bold">{title}</h3>
-          <p className="mt-3 text-sm leading-6 text-zinc-500">{desc}</p>
-        </div>)}
+      <div className="mx-auto max-w-[760px] text-center">
+        <h2 className="font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">Use Scoryn before the sale, during the pitch and after the project</h2>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Same compact number-card language as the reference: dark glass, soft burgundy depth, edge light, subtle 3D tilt and animated glow.</p>
+      </div>
+
+      <div className="numbers-reference-grid mt-12 grid gap-3 md:grid-cols-3">
+        {cards.map(([number,title,desc], index) => <article
+          key={title}
+          className="numbers-reference-card group"
+          style={{ animationDelay: `${index * 650}ms` }}
+        >
+          <div className="numbers-card-shine" />
+          <div className="numbers-card-noise" />
+          <div className="numbers-card-content">
+            <div className="flex items-start justify-between gap-4">
+              <span className="numbers-card-value">{number}</span>
+              <span className="numbers-card-dot" />
+            </div>
+            <div className="mt-12 sm:mt-14">
+              <h3 className="font-heading text-[15px] font-bold tracking-[-.02em] text-zinc-100 sm:text-base">{title}</h3>
+              <p className="mt-3 text-[12px] leading-6 text-zinc-500">{desc}</p>
+            </div>
+          </div>
+          <div className="numbers-card-underlight" />
+        </article>)}
       </div>
     </div>
   </section>;
