@@ -677,6 +677,85 @@ h1,h2,h3,h4,h5,h6,.font-heading {
   }
 }
 
+
+
+/* Dashboard AI workspace */
+.scoryn-orb {
+  animation: scoryn-orb-float 5.8s ease-in-out infinite;
+}
+
+.orb-surface {
+  border: 1px solid rgba(240,164,207,.18);
+  background:
+    radial-gradient(circle at 36% 26%, rgba(255,255,255,.22), transparent 18%),
+    radial-gradient(circle at 62% 68%, rgba(240,164,207,.2), transparent 34%),
+    linear-gradient(145deg, #2b0d19 0%, #74103f 45%, #c51d6f 72%, #32101e 100%);
+  box-shadow:
+    inset 0 2px 8px rgba(255,255,255,.08),
+    inset 0 -10px 24px rgba(0,0,0,.32),
+    0 0 0 1px rgba(255,255,255,.025),
+    0 18px 44px rgba(0,0,0,.35),
+    0 0 56px rgba(197,29,111,.18);
+}
+
+.assistant-prompt-shell {
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    0 26px 70px rgba(0,0,0,.42),
+    0 0 56px rgba(197,29,111,.08);
+}
+
+.assistant-prompt-shell::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -2;
+  border-radius: 23px;
+  background:
+    conic-gradient(
+      from var(--angle),
+      rgba(83,48,255,.25),
+      rgba(197,29,111,.74),
+      rgba(240,164,207,.62),
+      rgba(255,119,57,.18),
+      rgba(197,29,111,.36),
+      rgba(83,48,255,.22)
+    );
+  animation: spin-border 8s linear infinite;
+}
+
+.assistant-prompt-shell::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 21px;
+  background: #0d0d0f;
+}
+
+.assistant-prompt-glow {
+  background:
+    radial-gradient(circle at 8% 100%, rgba(82,53,255,.07), transparent 34%),
+    radial-gradient(circle at 90% 0%, rgba(197,29,111,.10), transparent 35%);
+}
+
+@keyframes scoryn-orb-float {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(1.5deg); }
+}
+
+@media (max-width: 640px) {
+  .assistant-prompt-shell {
+    border-radius: 20px;
+  }
+
+  .assistant-prompt-shell::before,
+  .assistant-prompt-shell::after {
+    border-radius: 20px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 
