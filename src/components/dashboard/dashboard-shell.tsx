@@ -144,7 +144,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </nav>
 
     {!collapsed&&<div className="mx-3 mt-1 rounded-xl border border-white/[.045] bg-black/25 p-3">
-      <div className="text-[9px] uppercase tracking-[.2em] text-zinc-750">Recent</div>
+      <div className="text-[9px] uppercase tracking-[.2em] text-zinc-700">Recent</div>
       <div className="mt-3 space-y-2 text-[11px] text-zinc-700">
         <div className="truncate">Website audit conversations</div>
         <div className="truncate">Client report drafts</div>
@@ -188,7 +188,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
           {profileOpen&&<div className="absolute right-0 top-12 z-[90] w-[250px] overflow-hidden rounded-2xl border border-white/[.075] bg-[#111113] p-2 shadow-[0_24px_80px_rgba(0,0,0,.55)]">
             <div className="flex items-center gap-3 border-b border-white/[.05] p-3">
               <Avatar user={user} size={38}/>
-              <div className="min-w-0"><div className="truncate text-sm font-medium">{user.displayName||'Scoryn user'}</div><div className="truncate text-[10px] text-zinc-650">{user.email}</div></div>
+              <div className="min-w-0"><div className="truncate text-sm font-medium">{user.displayName||'Scoryn user'}</div><div className="truncate text-[10px] text-zinc-600">{user.email}</div></div>
             </div>
             <button onClick={()=>{setEditOpen(true);setProfileOpen(false);}} className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs text-zinc-400 hover:bg-magenta/[.05] hover:text-rose"><UserRound className="h-4 w-4"/>Edit profile</button>
             <Link href="/dashboard/settings" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-zinc-400 hover:bg-magenta/[.05] hover:text-rose"><Settings className="h-4 w-4"/>Settings & branding</Link>
@@ -208,7 +208,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     {editOpen&&<div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-4 backdrop-blur-sm">
       <button className="absolute inset-0" onClick={()=>setEditOpen(false)} aria-label="Close"/>
       <div className="relative w-full max-w-md rounded-[24px] border border-white/[.075] bg-[#101012] p-6 shadow-2xl">
-        <div className="flex items-center gap-3"><Avatar user={user} size={46}/><div><h2 className="font-heading text-lg font-bold">Edit profile</h2><p className="text-xs text-zinc-650">{user.email}</p></div></div>
+        <div className="flex items-center gap-3"><Avatar user={user} size={46}/><div><h2 className="font-heading text-lg font-bold">Edit profile</h2><p className="text-xs text-zinc-600">{user.email}</p></div></div>
         <label className="mt-6 block text-xs text-zinc-500">Display name<input value={name} onChange={e=>setName(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.07] bg-black/30 px-3 text-sm outline-none focus:border-magenta/25"/></label>
         <div className="mt-6 flex justify-end gap-2"><button onClick={()=>setEditOpen(false)} className="rounded-full px-4 py-2 text-xs text-zinc-500">Cancel</button><button disabled={saving} onClick={saveProfile} className="glow-action rounded-full px-5 py-2 text-xs font-semibold">{saving?'Saving…':'Save profile'}</button></div>
       </div>
