@@ -287,7 +287,7 @@ export function AssistantWorkspace(){
         <div className="mx-auto max-w-[780px] space-y-5">
           {messages.map((m,i)=><div key={i} className={m.role==='user'?'flex justify-end':'flex justify-start'}>
             <div className={m.role==='user'
-              ?'max-w-[82%] rounded-[20px] rounded-br-md border border-magenta/12 bg-magenta/[.055] px-4 py-3 text-sm font-normal leading-7 text-zinc-200'
+              ?'max-w-[82%] rounded-[20px] rounded-br-md border border-magenta/10 bg-magenta/[.055] px-4 py-3 text-sm font-normal leading-7 text-zinc-200'
               :'max-w-[88%] rounded-[20px] rounded-bl-md border border-white/[.055] bg-[#0c0c0d] px-4 py-3 text-sm font-normal leading-7 text-zinc-400'}>
               {m.content}
             </div>
