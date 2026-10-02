@@ -13,18 +13,26 @@ export function AuditBox() {
     setError('');
     if (!url.trim()) return setError('Website URL enter karo.');
     setBusy(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 105000);
     try {
       const res = await fetch('/api/audit/demo', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url }),
+        signal: controller.signal
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Audit start nahi hua.');
       router.push(`/demo/${data.id}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      const message = e instanceof Error
+        ? (e.name === 'AbortError' ? 'Audit took too long. Please retry once.' : e.message)
+        : 'Something went wrong.';
+      setError(message);
       setBusy(false);
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
@@ -66,6 +74,7 @@ export function AuditBox() {
         <span className="text-zinc-800">•</span>
         AI
       </div>
+      {busy && <p className="relative z-10 mt-2 px-3 text-left text-[10px] text-zinc-600">Testing mobile + desktop with Google PageSpeed… usually 20–60 seconds.</p>}
       {error && <p className="relative z-10 mt-2 px-3 text-left text-xs text-rose-300">{error}</p>}
     </div>
   </div>;
