@@ -68,15 +68,30 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     try{setCollapsed(localStorage.getItem('scoryn_sidebar_collapsed')==='1');}catch{}
     const {auth}=getFirebaseClient();
     const unsubscribe=onAuthStateChanged(auth,current=>{
-      if(!current){
+      void (async()=>{
+        if(!current){
+          setReady(true);
+          router.replace('/login');
+          return;
+        }
+
+        setUser(current);
+        setName(current.displayName||'');
+
+        try{
+          const idToken=await current.getIdToken();
+          await fetch('/api/auth/session',{
+            method:'POST',
+            headers:{'content-type':'application/json'},
+            body:JSON.stringify({idToken})
+          });
+        }catch(e){
+          console.warn('Server session sync failed:',e);
+        }
+
         setReady(true);
-        router.replace('/login');
-        return;
-      }
-      setUser(current);
-      setName(current.displayName||'');
-      setReady(true);
-      void ensureClientWorkspace(current).catch(()=>{});
+        void ensureClientWorkspace(current).catch(()=>{});
+      })();
     });
     return unsubscribe;
   },[router]);
@@ -128,8 +143,12 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
 
   async function logout(){
     const {auth}=getFirebaseClient();
-    await signOut(auth);
+    await Promise.allSettled([
+      signOut(auth),
+      fetch('/api/auth/session',{method:'DELETE'})
+    ]);
     router.replace('/');
+    router.refresh();
   }
 
   async function saveProfile(){
