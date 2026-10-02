@@ -11,22 +11,100 @@ const models=[
   ['openai/gpt-oss-20b','GPT-OSS 20B · Reasoning']
 ];
 
+const languages=[
+  ['ENGLISH','English'],
+  ['HINGLISH','Hinglish'],
+  ['HINDI','हिन्दी'],
+  ['BENGALI','বাংলা'],
+  ['MARATHI','मराठी'],
+  ['GUJARATI','ગુજરાતી'],
+  ['TAMIL','தமிழ்'],
+  ['TELUGU','తెలుగు']
+];
+
 export default function Settings(){
   const [agency,setAgency]=useState('');
   const [color,setColor]=useState('#C51D6F');
   const [signature,setSignature]=useState('');
   const [language,setLanguage]=useState('HINGLISH');
   const [model,setModel]=useState(models[0][0]);
+  const [whatsapp,setWhatsapp]=useState('');
+  const [email,setEmail]=useState('');
+  const [phone,setPhone]=useState('');
   const [saved,setSaved]=useState(false);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState('');
 
-  useEffect(()=>{try{const raw=localStorage.getItem('scoryn_preferences');if(raw){const p=JSON.parse(raw);setAgency(p.agency||'');setColor(p.color||'#C51D6F');setSignature(p.signature||'');setLanguage(p.language||'HINGLISH');setModel(p.model||models[0][0]);}}catch{}},[]);
-
-  function save(){
+  useEffect(()=>{
     try{
-      localStorage.setItem('scoryn_preferences',JSON.stringify({agency,color,signature,language,model}));
-      localStorage.setItem('scoryn_model',model);
-      setSaved(true);setTimeout(()=>setSaved(false),1600);
+      const raw=localStorage.getItem('scoryn_preferences');
+      if(raw){
+        const p=JSON.parse(raw);
+        setAgency(p.agency||'');
+        setColor(p.color||'#C51D6F');
+        setSignature(p.signature||'');
+        setLanguage(p.language||'HINGLISH');
+        setModel(p.model||models[0][0]);
+        setWhatsapp(p.whatsapp||'');
+        setEmail(p.email||'');
+        setPhone(p.phone||'');
+      }
     }catch{}
+
+    let cancelled=false;
+    async function load(){
+      try{
+        const res=await fetch('/api/settings/branding',{cache:'no-store'});
+        if(!res.ok) return;
+        const p=await res.json();
+        if(cancelled) return;
+        setAgency(p.agencyName||'');
+        setColor(p.primaryColor||'#C51D6F');
+        setSignature(p.signature||'');
+        setLanguage(p.reportLanguage||'HINGLISH');
+        setWhatsapp(p.whatsapp||'');
+        setEmail(p.email||'');
+        setPhone(p.phone||'');
+      }catch{}finally{
+        if(!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return ()=>{cancelled=true;};
+  },[]);
+
+  async function save(){
+    setError('');
+    setSaved(false);
+    const payload={
+      agencyName:agency.trim(),
+      primaryColor:color,
+      whatsapp:whatsapp.trim(),
+      email:email.trim(),
+      phone:phone.trim(),
+      signature:signature.trim(),
+      reportLanguage:language
+    };
+
+    try{
+      localStorage.setItem('scoryn_preferences',JSON.stringify({
+        agency,color,signature,language,model,whatsapp,email,phone
+      }));
+      localStorage.setItem('scoryn_model',model);
+
+      const res=await fetch('/api/settings/branding',{
+        method:'PUT',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.error||'Preferences save nahi hui.');
+
+      setSaved(true);
+      setTimeout(()=>setSaved(false),1800);
+    }catch(e){
+      setError(e instanceof Error?e.message:'Save failed.');
+    }
   }
 
   return <div className="mx-auto min-h-[calc(100svh-4rem)] max-w-6xl px-4 py-10 pb-20 sm:px-8 lg:py-14">
@@ -37,21 +115,59 @@ export default function Settings(){
     <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_380px]">
       <div className="reference-card rounded-[24px] p-5 sm:p-6">
         <div className="flex items-center gap-2"><Palette className="h-4 w-4 text-rose"/><h2 className="font-heading text-sm font-bold">Report branding</h2></div>
+
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <label className="text-xs text-zinc-600">Agency name<input value={agency} onChange={e=>setAgency(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm text-white outline-none focus:border-magenta/20"/></label>
-          <label className="text-xs text-zinc-600">Primary color<div className="mt-2 flex gap-2"><input type="color" value={color} onChange={e=>setColor(e.target.value)} className="h-11 w-12 rounded-xl border border-white/[.06] bg-black/30 p-1"/><input value={color} onChange={e=>setColor(e.target.value)} className="h-11 flex-1 rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm outline-none"/></div></label>
-          <label className="text-xs text-zinc-600">Report language<select value={language} onChange={e=>setLanguage(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-[#0a0a0b] px-3 text-sm outline-none"><option>HINGLISH</option><option>ENGLISH</option><option>HINDI</option></select></label>
-          <label className="text-xs text-zinc-600">Default AI model<select value={model} onChange={e=>setModel(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-[#0a0a0b] px-3 text-sm outline-none">{models.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+          <label className="text-xs text-zinc-600">Agency name
+            <input value={agency} onChange={e=>setAgency(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm text-white outline-none focus:border-magenta/20"/>
+          </label>
+
+          <label className="text-xs text-zinc-600">Primary color
+            <div className="mt-2 flex gap-2">
+              <input type="color" value={color} onChange={e=>setColor(e.target.value)} className="h-11 w-12 rounded-xl border border-white/[.06] bg-black/30 p-1"/>
+              <input value={color} onChange={e=>setColor(e.target.value)} className="h-11 flex-1 rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm outline-none"/>
+            </div>
+          </label>
+
+          <label className="text-xs text-zinc-600">Report language
+            <select value={language} onChange={e=>setLanguage(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-[#0a0a0b] px-3 text-sm outline-none">
+              {languages.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+
+          <label className="text-xs text-zinc-600">Default AI model
+            <select value={model} onChange={e=>setModel(e.target.value)} className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-[#0a0a0b] px-3 text-sm outline-none">
+              {models.map(([id,label])=><option key={id} value={id}>{label}</option>)}
+            </select>
+          </label>
+
+          <label className="text-xs text-zinc-600">WhatsApp
+            <input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+91…" className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm outline-none focus:border-magenta/20"/>
+          </label>
+
+          <label className="text-xs text-zinc-600">Email
+            <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="agency@example.com" className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm outline-none focus:border-magenta/20"/>
+          </label>
+
+          <label className="text-xs text-zinc-600 sm:col-span-2">Phone
+            <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+91…" className="mt-2 h-11 w-full rounded-xl border border-white/[.06] bg-black/30 px-3 text-sm outline-none focus:border-magenta/20"/>
+          </label>
         </div>
-        <label className="mt-4 block text-xs text-zinc-600">Report CTA / signature<textarea value={signature} onChange={e=>setSignature(e.target.value)} rows={4} className="mt-2 w-full rounded-xl border border-white/[.06] bg-black/30 p-3 text-sm outline-none focus:border-magenta/20" placeholder="Need these issues fixed? Contact us…"/></label>
-        <button onClick={save} className="glow-action mt-5 inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold"><Save className="h-4 w-4"/>{saved?'Saved':'Save preferences'}</button>
+
+        <label className="mt-4 block text-xs text-zinc-600">Report CTA / signature
+          <textarea value={signature} onChange={e=>setSignature(e.target.value)} rows={4} className="mt-2 w-full rounded-xl border border-white/[.06] bg-black/30 p-3 text-sm outline-none focus:border-magenta/20" placeholder="Need these issues fixed? Contact us…"/>
+        </label>
+
+        <button disabled={loading} onClick={save} className="glow-action mt-5 inline-flex h-10 items-center gap-2 rounded-full px-5 text-sm font-semibold disabled:opacity-50">
+          <Save className="h-4 w-4"/>{saved?'Saved':'Save preferences'}
+        </button>
+        {error&&<p className="mt-3 text-xs text-rose-300">{error}</p>}
       </div>
 
       <div className="space-y-4">
         <div className="reference-card rounded-[24px] p-5">
           <div className="flex items-center gap-2"><Bot className="h-4 w-4 text-rose"/><h2 className="font-heading text-sm font-bold">AI routing</h2></div>
           <p className="mt-3 text-xs leading-6 text-zinc-600">Selected model is tried first. If NVIDIA returns an error or timeout, Scoryn automatically tries the next fast model in the fallback chain.</p>
-          <div className="mt-4 rounded-xl border border-magenta/15 bg-magenta/[.04] p-3 text-[11px] text-zinc-500"><Sparkles className="mr-2 inline h-3.5 w-3.5 text-rose"/>Fast-first fallback is wired in the chat API.</div>
+          <div className="mt-4 rounded-xl border border-magenta/15 bg-magenta/[.04] p-3 text-[11px] text-zinc-500"><Sparkles className="mr-2 inline h-3.5 w-3.5 text-rose"/>Audit explanations use the report language saved here.</div>
         </div>
 
         <div className="reference-card rounded-[24px] p-5">
@@ -69,7 +185,7 @@ export default function Settings(){
     <div className="mt-6 grid gap-3 md:grid-cols-3">
       {[
         [FileText,'Brand stays consistent','The same agency identity carries across report preview, PDF and share link.'],
-        [Languages,'Client-friendly language','Choose Hinglish, English or Hindi so the report matches the person receiving it.'],
+        [Languages,'8 report languages','English, Hinglish, Hindi, Bengali, Marathi, Gujarati, Tamil and Telugu are available.'],
         [Sparkles,'Fast model fallback','Scoryn can switch away from a failing model instead of leaving the user stuck.']
       ].map(([Icon,title,copy])=><div key={title as string} className="reference-card rounded-[22px] p-5">
         <Icon className="h-4 w-4 text-rose"/>
