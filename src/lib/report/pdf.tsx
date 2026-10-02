@@ -31,13 +31,13 @@ function score(value:any){
   return typeof value==='number'?String(value):'—';
 }
 
-export function ReportPDF({data}:{data:any}){
+export function ReportPDF({data,fontFamily='Helvetica'}:{data:any;fontFamily?:string}){
   const a=data.audit;
   const b=data.branding;
   const partial=Boolean(a.partial);
 
   return <Document>
-    <Page size="A4" style={s.page}>
+    <Page size="A4" style={[s.page,{fontFamily}]}>
       <View style={s.top}>
         <Text style={s.brand}>{b.agencyName||'Scoryn'}</Text>
         <Text style={s.muted}>Website Audit Report</Text>
