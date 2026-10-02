@@ -99,6 +99,18 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
 
   useEffect(()=>setProfileOpen(false),[pathname]);
 
+  useEffect(()=>{
+    if(!mobileOpen) return;
+    const previousOverflow=document.body.style.overflow;
+    const previousTouchAction=document.body.style.touchAction;
+    document.body.style.overflow='hidden';
+    document.body.style.touchAction='none';
+    return ()=>{
+      document.body.style.overflow=previousOverflow;
+      document.body.style.touchAction=previousTouchAction;
+    };
+  },[mobileOpen]);
+
   const pageTitle=useMemo(()=>{
     const item=[...workspaceNav,...manageNav].find(([href])=>href===pathname);
     if(item) return item[2];
@@ -152,7 +164,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
       <div className="space-y-1">
         {items.map(([href,Icon,title])=>{
           const active=pathname===href;
-          return <Link key={href} href={href} className={cn(
+          return <Link key={href} href={href} onClick={()=>{ if(window.innerWidth<768) setMobileOpen(false); }} className={cn(
             'group flex h-10 items-center rounded-xl text-[12px] transition',
             compact?'justify-center px-0':'gap-3 px-3',
             active?'border border-magenta/15 bg-magenta/[.07] text-rose':'text-zinc-600 hover:bg-white/[.025] hover:text-zinc-300'
@@ -169,13 +181,16 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     const compact=forceExpanded?false:collapsed;
     return <aside className={cn(
       'flex h-full flex-col border-r border-white/[.055] bg-[#09090a] transition-[width] duration-300',
-      compact?'w-[72px]':'w-[224px]'
+      mobile?'w-[min(86vw,340px)]':compact?'w-[72px]':'w-[224px]'
     )}>
-      <div className="flex h-16 items-center gap-3 border-b border-white/[.05] px-3">
-        <ScorynMark size={34}/>
-        {!compact&&<div className="min-w-0"><div className="font-heading text-sm text-zinc-100">Scoryn</div><div className="text-[9px] text-zinc-700">AI Website Audit</div></div>}
+      <div className={cn(
+        "flex items-center gap-3 border-b border-white/[.05]",
+        mobile?"h-[72px] px-4":"h-16 px-3"
+      )}>
+        <ScorynMark size={mobile?40:34}/>
+        {!compact&&<div className="min-w-0 flex-1"><div className={cn("font-heading text-zinc-100",mobile?"text-base":"text-sm")}>Scoryn</div><div className={cn("mt-0.5 text-zinc-700",mobile?"text-[10px]":"text-[9px]")}>AI Website Audit</div></div>}
         {mobile
-          ? <button onClick={()=>setMobileOpen(false)} className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-zinc-600 transition hover:bg-magenta/[.05] hover:text-rose"><X className="h-4 w-4"/></button>
+          ? <button onClick={()=>setMobileOpen(false)} aria-label="Close navigation" className="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/[.06] bg-white/[.015] text-zinc-500 transition hover:border-magenta/20 hover:bg-magenta/[.04] hover:text-rose"><X className="h-4 w-4"/></button>
           : <button onClick={toggleCollapsed} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-zinc-700 transition hover:bg-magenta/[.05] hover:text-rose md:grid">
               {compact?<PanelLeftOpen className="h-4 w-4"/>:<PanelLeftClose className="h-4 w-4"/>}
             </button>
@@ -229,10 +244,24 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     <div className="fixed inset-y-0 left-0 z-40 hidden md:block"><SidebarPanel/></div>
 
     <div className={cn(
-      'fixed inset-y-0 left-0 z-[70] block shadow-[18px_0_60px_rgba(0,0,0,.42)] transition-transform duration-300 md:hidden',
-      mobileOpen?'translate-x-0':'-translate-x-full'
-    )}>
-      <SidebarPanel forceExpanded mobile/>
+      'fixed inset-0 z-[70] md:hidden',
+      mobileOpen?'pointer-events-auto':'pointer-events-none'
+    )} aria-hidden={!mobileOpen}>
+      <button
+        type="button"
+        aria-label="Close navigation"
+        onClick={()=>setMobileOpen(false)}
+        className={cn(
+          'absolute inset-0 bg-black/68 backdrop-blur-[2px] transition-opacity duration-250',
+          mobileOpen?'opacity-100':'opacity-0'
+        )}
+      />
+      <div className={cn(
+        'absolute inset-y-0 left-0 shadow-[20px_0_70px_rgba(0,0,0,.55)] transition-transform duration-300',
+        mobileOpen?'translate-x-0':'-translate-x-full'
+      )}>
+        <SidebarPanel forceExpanded mobile/>
+      </div>
     </div>
 
     <header className={cn(
