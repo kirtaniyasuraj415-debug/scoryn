@@ -102,6 +102,51 @@ const fallbackCopy:Partial<Record<ReportLanguage,Record<string,Partial<AuditIssu
     }
   },
   BENGALI:{
+    'landmark-one-main':{
+      title:'মূল main landmark পাওয়া যায়নি',
+      explanation:'পেজে একটি পরিষ্কার main landmark নেই, তাই screen reader ব্যবহারকারীদের নেভিগেশন কঠিন হতে পারে।',
+      businessImpact:'এটি ঠিক করলে accessibility এবং ব্যবহারকারীর নেভিগেশন আরও ভালো হবে।'
+    },
+    'meta-description':{
+      title:'Meta description পাওয়া যায়নি',
+      explanation:'পেজে একটি কার্যকর meta description নেই, যা search result-এ পেজের সংক্ষিপ্ত পরিচয় দিতে পারে।',
+      businessImpact:'স্পষ্ট meta description সার্চ রেজাল্টে পেজটিকে ভালোভাবে বোঝাতে সাহায্য করতে পারে।'
+    },
+    'link-text':{
+      title:'কিছু link text যথেষ্ট বর্ণনামূলক নয়',
+      explanation:'কিছু লিংকের লেখা থেকে destination বা উদ্দেশ্য পরিষ্কার বোঝা যাচ্ছে না।',
+      businessImpact:'বর্ণনামূলক link text accessibility ও content understanding উন্নত করে।'
+    },
+    'document-title':{
+      title:'পেজের document title ঠিক নেই',
+      explanation:'পেজের title tag অনুপস্থিত বা যথেষ্ট স্পষ্ট নয়।',
+      businessImpact:'স্পষ্ট title ব্যবহারকারী ও search engine-কে পেজের বিষয় বুঝতে সাহায্য করে।'
+    },
+    'html-has-lang':{
+      title:'পেজের language attribute নেই',
+      explanation:'HTML element-এ page language নির্ধারণ করা হয়নি।',
+      businessImpact:'সঠিক language attribute screen reader ও accessibility tool-কে কনটেন্ট বুঝতে সাহায্য করে।'
+    },
+    'image-alt':{
+      title:'কিছু ছবিতে alt text নেই',
+      explanation:'কিছু image-এর জন্য অর্থপূর্ণ alternative text পাওয়া যায়নি।',
+      businessImpact:'Alt text accessibility বাড়ায় এবং ছবি না দেখলেও কনটেন্ট বোঝাতে সাহায্য করে।'
+    },
+    'color-contrast':{
+      title:'কিছু text-এর contrast কম',
+      explanation:'কিছু text এবং background-এর মধ্যে contrast যথেষ্ট নয়।',
+      businessImpact:'ভালো contrast কনটেন্ট পড়া সহজ করে, বিশেষ করে low-vision ব্যবহারকারীদের জন্য।'
+    },
+    'label':{
+      title:'কিছু form control-এর label নেই',
+      explanation:'কিছু input বা form control-এর সঙ্গে পরিষ্কার label যুক্ত নেই।',
+      businessImpact:'সঠিক label form ব্যবহার সহজ করে এবং accessibility উন্নত করে।'
+    },
+    'button-name':{
+      title:'কিছু button-এর accessible name নেই',
+      explanation:'কিছু button screen reader-এর জন্য পরিষ্কার নাম বা উদ্দেশ্য প্রকাশ করছে না।',
+      businessImpact:'Accessible button name navigation ও usability উন্নত করে।'
+    },
     'missing-title':{
       title:'পেজের টাইটেল পাওয়া যায়নি',
       explanation:'পেজের প্রাথমিক HTML-এ স্পষ্ট টাইটেল পাওয়া যায়নি।',
@@ -135,10 +180,57 @@ const fallbackCopy:Partial<Record<ReportLanguage,Record<string,Partial<AuditIssu
   }
 };
 
+const genericFallback:Partial<Record<ReportLanguage,{title:string;explanation:string;businessImpact:string}>>={
+  HINGLISH:{
+    title:'Website mein technical issue mila',
+    explanation:'Is technical check ko improve karne ki zarurat hai. Exact technical detail report mein preserve rahegi.',
+    businessImpact:'Isse website ki usability, accessibility ya technical quality better ho sakti hai.'
+  },
+  HINDI:{
+    title:'वेबसाइट में तकनीकी समस्या मिली',
+    explanation:'इस तकनीकी जांच में सुधार की जरूरत मिली है। सटीक तकनीकी जानकारी रिपोर्ट में सुरक्षित रहेगी।',
+    businessImpact:'इसे सुधारने से वेबसाइट की उपयोगिता, accessibility या technical quality बेहतर हो सकती है।'
+  },
+  BENGALI:{
+    title:'ওয়েবসাইটে একটি technical issue পাওয়া গেছে',
+    explanation:'এই technical check-এ উন্নতির প্রয়োজন পাওয়া গেছে। মূল technical detail রিপোর্টে সংরক্ষিত থাকবে।',
+    businessImpact:'এটি ঠিক করলে website-এর usability, accessibility বা technical quality উন্নত হতে পারে।'
+  },
+  MARATHI:{
+    title:'वेबसाइटमध्ये तांत्रिक समस्या आढळली',
+    explanation:'या technical check मध्ये सुधारणा आवश्यक आहे. मूळ technical detail रिपोर्टमध्ये जतन केली जाईल.',
+    businessImpact:'हे सुधारल्यास वेबसाइटची usability, accessibility किंवा technical quality चांगली होऊ शकते.'
+  },
+  GUJARATI:{
+    title:'વેબસાઇટમાં ટેકનિકલ સમસ્યા મળી',
+    explanation:'આ technical check માં સુધારાની જરૂર મળી છે. મૂળ technical detail રિપોર્ટમાં જાળવવામાં આવશે.',
+    businessImpact:'આ સુધારવાથી website ની usability, accessibility અથવા technical quality વધુ સારી થઈ શકે છે.'
+  },
+  TAMIL:{
+    title:'Website-ல் technical issue கண்டறியப்பட்டது',
+    explanation:'இந்த technical check-ல் மேம்பாடு தேவைப்படுகிறது. அசல் technical detail report-ல் பாதுகாக்கப்படும்.',
+    businessImpact:'இதனை சரி செய்தால் website usability, accessibility அல்லது technical quality மேம்படலாம்.'
+  },
+  TELUGU:{
+    title:'Website లో technical issue గుర్తించబడింది',
+    explanation:'ఈ technical check లో మెరుగుదల అవసరం ఉంది. అసలు technical detail report లో అలాగే ఉంచబడుతుంది.',
+    businessImpact:'దీనిని సరిచేస్తే website usability, accessibility లేదా technical quality మెరుగుపడవచ్చు.'
+  }
+};
+
 function applyFallback(issue:AuditIssue,language:ReportLanguage):AuditIssue{
   const local=fallbackCopy[language]?.[issue.key];
-  if(!local) return issue;
-  return {...issue,...local};
+  if(local) return {...issue,...local};
+  if(language==='ENGLISH') return issue;
+  const generic=genericFallback[language];
+  if(!generic) return issue;
+  return {
+    ...issue,
+    title:generic.title,
+    explanation:generic.explanation,
+    businessImpact:generic.businessImpact,
+    technicalDetail:issue.technicalDetail||issue.title+' — '+issue.explanation
+  };
 }
 
 function parseJsonArray(text:string){
@@ -221,7 +313,12 @@ export async function explainAuditIssues(
     JSON.stringify(compact)
   ].join('\n');
 
-  const models=['z-ai/glm-5.3-flash','openai/gpt-oss-20b'];
+  const models=[
+    'z-ai/glm-5.3-flash',
+    'z-ai/glm-5.3',
+    'nvidia/nemotron-3-super-120b-a12b',
+    'openai/gpt-oss-20b'
+  ];
 
   for(const model of models){
     try{
