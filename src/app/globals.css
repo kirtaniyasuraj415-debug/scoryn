@@ -30,7 +30,13 @@ body {
 }
 
 h1,h2,h3,h4,h5,h6,.font-heading {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-manrope), sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+button, input, textarea, select {
+  font: inherit;
 }
 
 ::selection {
@@ -125,32 +131,52 @@ h1,h2,h3,h4,h5,h6,.font-heading {
 
 .glow-action {
   position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border: 1px solid rgba(240,164,207,.24);
   background:
-    linear-gradient(110deg, #741041 0%, #a9155f 34%, #c51d6f 62%, #d9498f 100%);
+    linear-gradient(180deg, rgba(255,255,255,.055), transparent 34%),
+    linear-gradient(110deg, #6d0e3d 0%, #94134f 34%, #bd1d69 67%, #d44287 100%);
   color: white;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
-    0 10px 28px rgba(197,29,111,.20),
-    0 0 34px rgba(197,29,111,.12);
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 0 -5px 12px rgba(70,5,35,.26),
+    0 9px 20px rgba(0,0,0,.34),
+    0 0 22px rgba(197,29,111,.10);
+  transform: translateZ(0);
 }
 
 .glow-action::before {
   content: '';
   position: absolute;
-  inset: 1px 1px auto;
-  height: 42%;
+  inset: 0;
+  z-index: -1;
   border-radius: inherit;
-  background: linear-gradient(to bottom, rgba(255,255,255,.09), transparent);
+  background:
+    radial-gradient(circle at 28% 0%, rgba(255,255,255,.12), transparent 34%),
+    linear-gradient(90deg, transparent, rgba(240,164,207,.05), transparent);
+  pointer-events: none;
+}
+
+.glow-action::after {
+  content: '';
+  position: absolute;
+  inset: auto 12% 3px;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+  opacity: .7;
   pointer-events: none;
 }
 
 .glow-action:hover {
-  border-color: rgba(240,164,207,.42);
+  border-color: rgba(240,164,207,.38);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    0 13px 34px rgba(197,29,111,.28),
-    0 0 48px rgba(197,29,111,.18);
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 -5px 12px rgba(70,5,35,.22),
+    0 12px 24px rgba(0,0,0,.36),
+    0 0 28px rgba(197,29,111,.14);
+  transform: translateY(-1px);
 }
 
 .glow-action:hover .button-sheen {
@@ -788,4 +814,31 @@ h1,h2,h3,h4,h5,h6,.font-heading {
   .reference-card:hover .mock-panel-right {
     transform: none;
   }
+}
+
+
+.sidebar-usage-card {
+  border: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(240,164,207,.06), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.012));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    inset 0 0 0 1px rgba(197,29,111,.07),
+    0 16px 38px rgba(0,0,0,.25);
+  backdrop-filter: blur(16px);
+}
+
+.dashboard-panel {
+  border: 1px solid rgba(255,255,255,.055);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.008)),
+    #09090a;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.028),
+    0 18px 48px rgba(0,0,0,.28);
+}
+
+.chat-bottom-fade {
+  background: linear-gradient(to top, #070707 48%, rgba(7,7,7,.94) 72%, transparent);
 }
