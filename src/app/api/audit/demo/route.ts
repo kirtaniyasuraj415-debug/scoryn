@@ -36,7 +36,7 @@ async function runPageSpeed(url:string,strategy:Strategy){
   endpoint.searchParams.set('key',PAGESPEED_API_KEY);
 
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),75000);
+  const timeout=setTimeout(()=>controller.abort(),50000);
 
   try{
     const r=await fetch(endpoint,{
@@ -98,7 +98,7 @@ async function runPageSpeed(url:string,strategy:Strategy){
     };
   }catch(e){
     if(e instanceof Error && e.name==='AbortError'){
-      throw new Error('PageSpeed '+strategy+' timed out after 75 seconds.');
+      throw new Error('PageSpeed '+strategy+' timed out after 50 seconds.');
     }
     throw e;
   }finally{
@@ -133,29 +133,46 @@ async function createRealAudit(url:string){
     clearTimeout(preflightTimeout);
   }
 
-  const [mobile,desktop]=await Promise.all([
+  const settled=await Promise.allSettled([
     runPageSpeed(url,'mobile'),
     runPageSpeed(url,'desktop')
   ]);
 
+  const mobile=settled[0].status==='fulfilled'?settled[0].value:null;
+  const desktop=settled[1].status==='fulfilled'?settled[1].value:null;
+
+  if(!mobile&&!desktop){
+    const reasons=settled
+      .map(x=>x.status==='rejected'?(x.reason instanceof Error?x.reason.message:String(x.reason)):'')
+      .filter(Boolean)
+      .join(' | ');
+    throw new Error(reasons||'Google PageSpeed could not complete this audit.');
+  }
+
+  const performance=mobile&&desktop?average(mobile.performance,desktop.performance):(mobile?.performance??desktop!.performance);
+  const seo=mobile&&desktop?average(mobile.seo,desktop.seo):(mobile?.seo??desktop!.seo);
+  const accessibility=mobile&&desktop?average(mobile.accessibility,desktop.accessibility):(mobile?.accessibility??desktop!.accessibility);
+  const bestPractices=mobile&&desktop?average(mobile.bestPractices,desktop.bestPractices):(mobile?.bestPractices??desktop!.bestPractices);
+
   const result={
-    performance:average(mobile.performance,desktop.performance),
-    seo:average(mobile.seo,desktop.seo),
-    accessibility:average(mobile.accessibility,desktop.accessibility),
-    bestPractices:average(mobile.bestPractices,desktop.bestPractices),
-    mobile:{
+    performance,
+    seo,
+    accessibility,
+    bestPractices,
+    mobile:mobile?{
       performance:mobile.performance,
       seo:mobile.seo,
       accessibility:mobile.accessibility,
       bestPractices:mobile.bestPractices
-    },
-    desktop:{
+    }:null,
+    desktop:desktop?{
       performance:desktop.performance,
       seo:desktop.seo,
       accessibility:desktop.accessibility,
       bestPractices:desktop.bestPractices
-    },
-    issues:[...mobile.issues,...desktop.issues]
+    }:null,
+    coverage:mobile&&desktop?'mobile+desktop':mobile?'mobile-only':'desktop-only',
+    issues:[...(mobile?.issues??[]),...(desktop?.issues??[])]
       .filter((issue,index,list)=>list.findIndex(x=>x.key===issue.key)===index)
       .slice(0,6),
     source:'Google PageSpeed Insights / Lighthouse',
