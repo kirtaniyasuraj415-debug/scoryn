@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { normalizeAuditUrl } from '@/lib/audit/url';
 import { createDemoAudit } from '@/lib/audit/demo';
 
+const PAGESPEED_API_KEY='AIzaSyCy1eDqDWE_Z13bXM0yqLOBBhBc9XfwpxI';
+
 export async function POST(req: Request) {
   try {
     const { url: raw } = await req.json();
     const url = normalizeAuditUrl(raw);
-    const demo = process.env.DEMO_AUDIT_MODE === 'true' || !process.env.PAGESPEED_API_KEY;
+    const demo = process.env.DEMO_AUDIT_MODE === 'true';
 
     if (!demo) {
       const endpoint = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
       endpoint.searchParams.append('category', 'seo');
       endpoint.searchParams.append('category', 'accessibility');
       endpoint.searchParams.append('category', 'best-practices');
-      endpoint.searchParams.set('key', process.env.PAGESPEED_API_KEY!);
+      endpoint.searchParams.set('key', PAGESPEED_API_KEY);
       const r = await fetch(endpoint, { cache: 'no-store' });
       if (!r.ok) throw new Error('PageSpeed audit failed.');
       const json = await r.json();
