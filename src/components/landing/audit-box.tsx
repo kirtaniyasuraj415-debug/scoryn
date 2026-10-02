@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, Globe2, LoaderCircle, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { getFirebaseClient } from '@/lib/firebase/client';
 
 export function AuditBox() {
   const [url, setUrl] = useState('');
@@ -13,18 +14,35 @@ export function AuditBox() {
     setError('');
     if (!url.trim()) return setError('Website URL enter karo.');
     setBusy(true);
+    let language='ENGLISH';
+    try{
+      const raw=localStorage.getItem('scoryn_preferences');
+      if(raw) language=JSON.parse(raw)?.language||'ENGLISH';
+    }catch{}
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 105000);
     try {
+      const {auth}=getFirebaseClient();
+      if(auth.currentUser){
+        const idToken=await auth.currentUser.getIdToken();
+        await fetch('/api/auth/session',{
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          body:JSON.stringify({idToken})
+        });
+      }
+
       const res = await fetch('/api/audit/demo', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, language }),
         signal: controller.signal
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Audit start nahi hua.');
-      router.push(`/demo/${data.id}`);
+      if(data.reportId) router.push(`/dashboard/report/${data.reportId}`);
+      else router.push(`/demo/${data.id}`);
     } catch (e) {
       const message = e instanceof Error
         ? (e.name === 'AbortError' ? 'Audit took too long. Please retry once.' : e.message)
