@@ -167,7 +167,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </aside>;
   }
 
-  return <div className="min-h-screen bg-[#070707] text-white">
+  return <div className="relative min-h-screen overflow-x-hidden bg-black text-white">\n    <div className="pointer-events-none fixed inset-0 z-0">\n      <div className="hero-grid absolute inset-0 opacity-[.22]"/>\n      <div className="noise absolute inset-0 opacity-[.07]"/>\n      <div className="dashboard-ambient-glow absolute left-1/2 top-[58%] h-[620px] w-[980px] -translate-x-1/2 rounded-full"/>\n    </div>
     <div className="fixed inset-y-0 left-0 z-40 hidden lg:block"><SidebarPanel/></div>
 
     <div className={cn(
@@ -211,7 +211,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </header>
 
     <main className={cn(
-      'min-h-screen pt-16 transition-[padding] duration-300',
+      'relative z-10 min-h-screen pt-16 transition-[padding] duration-300',
       collapsed?'lg:pl-[76px]':'lg:pl-[244px]'
     )}>
       {children}
