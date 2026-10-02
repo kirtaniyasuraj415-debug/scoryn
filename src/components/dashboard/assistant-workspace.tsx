@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
@@ -27,6 +27,75 @@ export const NVIDIA_MODELS=[
   {id:'stepfun-ai/step-3.5-flash',label:'Step 3.5 Flash',hint:'Flash'},
   {id:'openai/gpt-oss-20b',label:'GPT-OSS 20B',hint:'Reasoning'}
 ] as const;
+
+type PromptComposerProps={
+  compact?:boolean;
+  input:string;
+  model:string;
+  busy:boolean;
+  inputRef:RefObject<HTMLTextAreaElement>;
+  onInput:(value:string)=>void;
+  onModel:(value:string)=>void;
+  onSubmit:()=>void;
+};
+
+function PromptComposer({
+  compact=false,
+  input,
+  model,
+  busy,
+  inputRef,
+  onInput,
+  onModel,
+  onSubmit
+}:PromptComposerProps){
+  function submit(e:FormEvent){
+    e.preventDefault();
+    onSubmit();
+  }
+
+  return <form onSubmit={submit} className="audit-shell mx-auto w-full max-w-[780px] rounded-[22px] p-px text-left">
+    <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3.5 sm:p-4">
+      <textarea
+        ref={inputRef}
+        value={input}
+        onChange={e=>onInput(e.target.value)}
+        onKeyDown={e=>{
+          if(e.key==='Enter'&&!e.shiftKey){
+            e.preventDefault();
+            onSubmit();
+          }
+        }}
+        rows={compact?1:2}
+        placeholder="Ask anything or paste a client website URL…"
+        className={`relative z-10 w-full resize-none bg-transparent px-2 pt-1 text-base font-normal leading-6 text-white outline-none placeholder:text-zinc-700 sm:text-sm ${compact?'min-h-[50px]':'min-h-[76px]'}`}
+      />
+
+      <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <button type="button" className="grid h-9 w-9 place-items-center rounded-full border border-white/[.06] bg-[#0a0a0a] text-zinc-600 transition hover:border-magenta/20 hover:text-rose">
+            <Paperclip className="h-4 w-4"/>
+          </button>
+
+          <label className="flex h-9 max-w-[230px] items-center gap-2 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-500">
+            <Bot className="h-3.5 w-3.5 shrink-0 text-rose"/>
+            <select value={model} onChange={e=>onModel(e.target.value)} className="min-w-0 max-w-[170px] bg-transparent text-zinc-300 outline-none">
+              {NVIDIA_MODELS.map(m=><option className="bg-[#101010]" key={m.id} value={m.id}>{m.label} · {m.hint}</option>)}
+            </select>
+          </label>
+
+          <span className="hidden h-9 items-center gap-1.5 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-600 md:flex">
+            <Globe2 className="h-3.5 w-3.5"/>URL auto-detect
+          </span>
+        </div>
+
+        <button type="submit" disabled={!input.trim()||busy} className="glow-action grid h-10 w-10 place-items-center rounded-full disabled:opacity-35">
+          {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<ArrowUp className="h-4 w-4"/>}
+        </button>
+      </div>
+    </div>
+  </form>;
+}
 
 function findUrl(text:string){
   const explicit=text.match(/https?:\/\/[^\s]+/i)?.[0];
@@ -57,7 +126,7 @@ export function AssistantWorkspace(){
   const [busy,setBusy]=useState(false);
   const [status,setStatus]=useState('');
   const inputRef=useRef<HTMLTextAreaElement>(null);
-  const endRef=useRef<HTMLDivElement>(null);
+  const messagesRef=useRef<HTMLDivElement>(null);
 
   useEffect(()=>{
     const {auth}=getFirebaseClient();
@@ -117,9 +186,17 @@ export function AssistantWorkspace(){
     try{localStorage.setItem('scoryn_model',model);}catch{}
   },[model]);
 
+  // Keep chat scrolling isolated inside the message pane. Never scroll the whole document.
   useEffect(()=>{
-    if(messages.length) endRef.current?.scrollIntoView({behavior:'smooth',block:'end'});
-  },[messages,busy]);
+    const el=messagesRef.current;
+    if(!el||!messages.length) return;
+    const distanceFromBottom=el.scrollHeight-el.scrollTop-el.clientHeight;
+    if(distanceFromBottom<220){
+      requestAnimationFrame(()=>{
+        el.scrollTo({top:el.scrollHeight,behavior:'auto'});
+      });
+    }
+  },[messages.length,busy]);
 
   const firstName=useMemo(()=>{
     const clean=displayName.trim();
@@ -161,7 +238,7 @@ export function AssistantWorkspace(){
     setInput('');
     setStatus('');
     router.replace('/dashboard/ai',{scroll:false});
-    setTimeout(()=>inputRef.current?.focus(),50);
+    requestAnimationFrame(()=>inputRef.current?.focus({preventScroll:true}));
   }
 
   async function send(raw?:string){
@@ -208,8 +285,6 @@ export function AssistantWorkspace(){
     }
   }
 
-  function submit(e:FormEvent){e.preventDefault();void send();}
-
   const suggestions=[
     {icon:FileSearch,title:'Audit a website',copy:'Paste any public URL',prompt:'https://example.com'},
     {icon:Sparkles,title:'Explain an issue',copy:'Client-friendly explanation',prompt:'Explain why a slow LCP matters to a business owner.'},
@@ -218,44 +293,11 @@ export function AssistantWorkspace(){
 
   const hasConversation=messages.length>0;
 
-  const PromptBox=({compact=false}:{compact?:boolean})=><form onSubmit={submit} className="audit-shell mx-auto w-full max-w-[780px] rounded-[22px] p-px text-left">
-    <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3.5 sm:p-4">
-      <textarea
-        ref={inputRef}
-        value={input}
-        onChange={e=>setInput(e.target.value)}
-        onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send();}}}
-        rows={compact?1:2}
-        placeholder="Ask anything or paste a client website URL…"
-        className={`relative z-10 w-full resize-none bg-transparent px-2 pt-1 text-[14px] font-normal leading-6 text-white outline-none placeholder:text-zinc-700 ${compact?'min-h-[52px]':'min-h-[78px]'}`}
-      />
-      <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <button type="button" className="grid h-9 w-9 place-items-center rounded-full border border-white/[.06] bg-[#0a0a0a] text-zinc-600 transition hover:border-magenta/20 hover:text-rose">
-            <Paperclip className="h-4 w-4"/>
-          </button>
-          <label className="flex h-9 max-w-[230px] items-center gap-2 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-500">
-            <Bot className="h-3.5 w-3.5 shrink-0 text-rose"/>
-            <select value={model} onChange={e=>setModel(e.target.value)} className="min-w-0 max-w-[170px] bg-transparent text-zinc-300 outline-none">
-              {NVIDIA_MODELS.map(m=><option className="bg-[#101010]" key={m.id} value={m.id}>{m.label} · {m.hint}</option>)}
-            </select>
-          </label>
-          <span className="hidden h-9 items-center gap-1.5 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-600 md:flex">
-            <Globe2 className="h-3.5 w-3.5"/>URL auto-detect
-          </span>
-        </div>
-        <button type="submit" disabled={!input.trim()||busy} className="glow-action grid h-10 w-10 place-items-center rounded-full disabled:opacity-35">
-          {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<ArrowUp className="h-4 w-4"/>}
-        </button>
-      </div>
-    </div>
-  </form>;
-
   if(!hasConversation){
-    return <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden">
+    return <section className="relative min-h-[calc(100dvh-4rem)] overflow-hidden">
       <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.25]"/>
       <div className="hero-ambient-glow pointer-events-none absolute left-1/2 top-[52%] h-[540px] w-[900px] -translate-x-1/2 rounded-full opacity-55"/>
-      <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl items-center justify-center px-4 py-12 sm:px-6">
+      <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center justify-center px-4 py-8 sm:px-6">
         <div className="w-full max-w-[780px] text-center">
           <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-magenta/20 bg-[#0b090a] shadow-[0_0_34px_rgba(197,29,111,.14)]">
             <ScorynMark size={40} className="border-0 shadow-none"/>
@@ -263,10 +305,26 @@ export function AssistantWorkspace(){
           <p className="text-xs text-zinc-500">Hi, {firstName}</p>
           <h1 className="mt-2 font-heading text-[2rem] leading-[1.05] text-zinc-100 sm:text-[3rem]">What&apos;s on your mind?</h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-zinc-600">Website URL paste karo to audit automatically start hoga. Normal question pucho to Scoryn AI copilot answer karega.</p>
-          <div className="mt-8"><PromptBox/></div>
+
+          <div className="mt-8">
+            <PromptComposer
+              input={input}
+              model={model}
+              busy={busy}
+              inputRef={inputRef}
+              onInput={setInput}
+              onModel={setModel}
+              onSubmit={()=>void send()}
+            />
+          </div>
+
           <div className="mt-3 h-5 text-[10px] text-zinc-700">{status}</div>
+
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            {suggestions.map(({icon:Icon,title,copy,prompt})=><button key={title} onClick={()=>{setInput(prompt);inputRef.current?.focus();}} className="group rounded-2xl border border-white/[.05] bg-black/35 p-3.5 text-left transition duration-300 hover:-translate-y-0.5 hover:border-magenta/20 hover:bg-magenta/[.025]">
+            {suggestions.map(({icon:Icon,title,copy,prompt})=><button key={title} onClick={()=>{
+              setInput(prompt);
+              requestAnimationFrame(()=>inputRef.current?.focus({preventScroll:true}));
+            }} className="group rounded-2xl border border-white/[.05] bg-black/35 p-3.5 text-left transition duration-300 hover:-translate-y-0.5 hover:border-magenta/20 hover:bg-magenta/[.025]">
               <div className="flex items-center gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-magenta/15 bg-magenta/[.055] text-rose"><Icon className="h-4 w-4"/></span><div className="min-w-0"><h3 className="font-heading text-xs text-zinc-200">{title}</h3><p className="mt-0.5 truncate text-[10px] text-zinc-600">{copy}</p></div></div>
             </button>)}
           </div>
@@ -275,16 +333,17 @@ export function AssistantWorkspace(){
     </section>;
   }
 
-  return <section className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden">
+  return <section className="relative h-[calc(100dvh-4rem)] min-h-[520px] overflow-hidden">
     <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.16]"/>
-    <div className="relative mx-auto flex w-full max-w-[980px] flex-1 flex-col px-4 sm:px-6">
-      <div className="flex items-center justify-between border-b border-white/[.045] py-4">
+
+    <div className="relative mx-auto flex h-full w-full max-w-[980px] flex-col px-4 sm:px-6">
+      <div className="flex shrink-0 items-center justify-between border-b border-white/[.045] py-4">
         <div className="min-w-0"><div className="truncate text-xs text-zinc-300">{sessions.find(s=>s.id===currentId)?.title||'Current chat'}</div><div className="mt-1 text-[9px] text-zinc-700">Scoryn AI Workspace</div></div>
         <button onClick={startNewChat} className="inline-flex h-9 items-center gap-2 rounded-full border border-white/[.06] bg-white/[.018] px-3 text-[10px] text-zinc-500 transition hover:border-magenta/15 hover:text-rose"><MessageSquarePlus className="h-3.5 w-3.5"/>New chat</button>
       </div>
 
-      <div className="flex-1 py-8">
-        <div className="mx-auto max-w-[780px] space-y-5">
+      <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6 [scrollbar-width:thin] [scrollbar-color:rgba(197,29,111,.22)_transparent]">
+        <div className="mx-auto max-w-[780px] space-y-5 pb-4">
           {messages.map((m,i)=><div key={i} className={m.role==='user'?'flex justify-end':'flex justify-start'}>
             <div className={m.role==='user'
               ?'max-w-[82%] rounded-[20px] rounded-br-md border border-magenta/10 bg-magenta/[.055] px-4 py-3 text-sm font-normal leading-7 text-zinc-200'
@@ -292,13 +351,22 @@ export function AssistantWorkspace(){
               {m.content}
             </div>
           </div>)}
+
           {busy&&<div className="flex justify-start"><div className="flex items-center gap-2 rounded-full border border-white/[.05] bg-[#0c0c0d] px-3 py-2 text-[10px] text-zinc-600"><LoaderCircle className="h-3.5 w-3.5 animate-spin text-rose"/>{status||'Thinking…'}</div></div>}
-          <div ref={endRef}/>
         </div>
       </div>
 
-      <div className="chat-bottom-fade sticky bottom-0 -mx-4 px-4 pb-5 pt-10 sm:-mx-6 sm:px-6">
-        <PromptBox compact/>
+      <div className="chat-bottom-fade shrink-0 -mx-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:-mx-6 sm:px-6">
+        <PromptComposer
+          compact
+          input={input}
+          model={model}
+          busy={busy}
+          inputRef={inputRef}
+          onInput={setInput}
+          onModel={setModel}
+          onSubmit={()=>void send()}
+        />
         <div className="mt-2 text-center text-[9px] text-zinc-800">Scoryn can make mistakes. Verify important audit recommendations.</div>
       </div>
     </div>
