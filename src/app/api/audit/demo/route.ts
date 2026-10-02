@@ -111,6 +111,7 @@ function average(a:number,b:number){
 }
 
 async function createRealAudit(url:string){
+  let auditUrl=url;
   const preflightController=new AbortController();
   const preflightTimeout=setTimeout(()=>preflightController.abort(),10000);
   try{
@@ -124,6 +125,7 @@ async function createRealAudit(url:string){
     if(!preflight.ok && preflight.status>=500){
       throw new Error('Target website returned HTTP '+preflight.status+'.');
     }
+    auditUrl=preflight.url||url;
   }catch(e){
     if(e instanceof Error && e.name==='AbortError'){
       throw new Error('Target website did not respond within 10 seconds.');
@@ -134,8 +136,8 @@ async function createRealAudit(url:string){
   }
 
   const settled=await Promise.allSettled([
-    runPageSpeed(url,'mobile'),
-    runPageSpeed(url,'desktop')
+    runPageSpeed(auditUrl,'mobile'),
+    runPageSpeed(auditUrl,'desktop')
   ]);
 
   const mobile=settled[0].status==='fulfilled'?settled[0].value:null;
@@ -176,6 +178,8 @@ async function createRealAudit(url:string){
       .filter((issue,index,list)=>list.findIndex(x=>x.key===issue.key)===index)
       .slice(0,6),
     source:'Google PageSpeed Insights / Lighthouse',
+    requestedUrl:url,
+    resolvedUrl:auditUrl,
     testedAt:new Date().toISOString()
   };
 
