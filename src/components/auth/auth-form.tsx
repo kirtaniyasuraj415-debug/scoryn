@@ -23,10 +23,23 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [error,setError]=useState('');
   const router=useRouter();
 
-  function finish(user:any) {
+  async function finish(user:any) {
+    const idToken=await user.getIdToken();
+    const sessionRes=await fetch('/api/auth/session',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({idToken})
+    });
+    if(!sessionRes.ok){
+      const data=await sessionRes.json().catch(()=>({}));
+      throw new Error(data.error||'Could not create a secure session.');
+    }
+
     router.replace('/dashboard');
+    router.refresh();
+
     void ensureClientWorkspace(user).catch((e)=>{
-      console.warn('Workspace bootstrap continued in background:', e);
+      console.warn('Workspace bootstrap continued in background:',e);
     });
   }
 
@@ -41,10 +54,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       if(mode==='signup'){
         const c=await createUserWithEmailAndPassword(auth,email,password);
         if(name) await updateProfile(c.user,{displayName:name});
-        finish(c.user);
+        await finish(c.user);
       } else {
         const c=await signInWithEmailAndPassword(auth,email,password);
-        finish(c.user);
+        await finish(c.user);
       }
     } catch(e) {
       setError(e instanceof Error ? e.message : 'Authentication failed.');
@@ -61,7 +74,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       const provider=new GoogleAuthProvider();
       provider.setCustomParameters({prompt:'select_account'});
       const c=await signInWithPopup(auth,provider);
-      finish(c.user);
+      await finish(c.user);
     } catch(e) {
       setError(e instanceof Error ? e.message : 'Google sign-in failed.');
       setBusy(false);
