@@ -21,11 +21,7 @@ type ChatMessage={role:'user'|'assistant';content:string};
 type ChatSession={id:string;title:string;messages:ChatMessage[];updatedAt:number};
 
 export const NVIDIA_MODELS=[
-  {id:'meta/llama-3.2-1b-instruct',label:'Llama 3.2 1B',hint:'Ultra fast'},
-  {id:'meta/llama-3.1-8b-instruct',label:'Llama 3.1 8B',hint:'Fast'},
-  {id:'deepseek-ai/deepseek-v4-flash',label:'DeepSeek V4 Flash',hint:'Flash'},
-  {id:'stepfun-ai/step-3.5-flash',label:'Step 3.5 Flash',hint:'Flash'},
-  {id:'openai/gpt-oss-20b',label:'GPT-OSS 20B',hint:'Reasoning'}
+  {id:'mistralai/mistral-nemotron',label:'Mistral Nemotron',hint:'NVIDIA Free Endpoint'}
 ] as const;
 
 type PromptComposerProps={
