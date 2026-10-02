@@ -7,50 +7,76 @@ const bodySchema=z.object({
 });
 
 const DEFAULT_MODELS=[
-  'meta/llama-3.2-1b-instruct',
-  'meta/llama-3.1-8b-instruct',
-  'deepseek-ai/deepseek-v4-flash',
-  'stepfun-ai/step-3.5-flash',
-  'openai/gpt-oss-20b'
+  'mistralai/mistral-nemotron'
 ];
 
-function localFallback(message:string){
+function localFallback(message:string,reason:'missing-key'|'model-error'){
   const m=message.trim().toLowerCase();
+
+  if(reason==='missing-key'){
+    if(/^(hi|hii+|hello|hey|hey bro|hello bro|namaste|yo)[!. ]*$/.test(m)){
+      return 'Hey 👋 Scoryn ready hai. NVIDIA server key production deployment mein available nahi hai.';
+    }
+    return 'NVIDIA server key production deployment mein available nahi hai. Vercel mein NVIDIA_API_KEY ko Production environment ke liye enable karke redeploy karo.';
+  }
+
   if(/^(hi|hii+|hello|hey|hey bro|hello bro|namaste|yo)[!. ]*$/.test(m)){
-    return 'Hey 👋 Scoryn ready hai. Website URL paste karo to audit start hoga, ya koi normal question pucho.';
+    return 'Hey 👋 Scoryn ready hai. NVIDIA endpoint abhi response nahi de raha; thodi der baad phir try karo.';
   }
-  if(m.includes('what can you do')||m.includes('kya kar sak')){
-    return 'Main website audit workflow, technical issue explanation, client-friendly report copy aur outreach/pitch writing mein help kar sakta hoon. Full general AI answers ke liye NVIDIA server key connect honi chahiye.';
-  }
-  return 'Scoryn ka chat interface ready hai, lekin live NVIDIA key abhi server par connected nahi hai. Website URL paste karoge to audit flow chalega; NVIDIA key connect hote hi normal questions bhi selected model se answer honge.';
+
+  return 'NVIDIA API key mil gayi hai, lekin current NVIDIA model endpoint request complete nahi kar paaya. Scoryn fallback mode mein hai; thodi der baad retry karo.';
 }
 
 async function callModel(model:string,message:string,key:string){
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),12000);
+  const timeout=setTimeout(()=>controller.abort(),20000);
+
   try{
     const res=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
       method:'POST',
       signal:controller.signal,
-      headers:{'content-type':'application/json','authorization':`Bearer ${key}`},
+      headers:{
+        'accept':'application/json',
+        'content-type':'application/json',
+        'authorization':`Bearer ${key}`
+      },
       body:JSON.stringify({
         model,
-        temperature:.25,
-        max_tokens:700,
+        temperature:.35,
+        top_p:.8,
+        max_tokens:900,
+        stream:false,
         messages:[
-          {role:'system',content:'You are Scoryn, a concise AI copilot for web developers and freelancers. Answer normal questions naturally. When discussing website audits, explain technical issues in business-friendly language. Never invent statistics or revenue loss.'},
+          {
+            role:'system',
+            content:'You are Scoryn, a concise AI copilot for web developers and freelancers. Answer normal questions naturally. When discussing website audits, explain technical issues in business-friendly language. Never invent statistics, revenue loss, or unsupported claims.'
+          },
           {role:'user',content:message}
         ]
       })
     });
-    if(!res.ok) throw new Error(`${model} failed with ${res.status}`);
+
+    if(!res.ok){
+      const detail=(await res.text()).slice(0,500);
+      throw new Error(`${model} failed with ${res.status}: ${detail}`);
+    }
+
     const data:any=await res.json();
     const text=data?.choices?.[0]?.message?.content?.trim();
     if(!text) throw new Error(`${model} returned no text`);
+
     return text;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function GET(){
+  const key=process.env.NVIDIA_API_KEY;
+  return NextResponse.json({
+    configured:Boolean(key),
+    primaryModel:DEFAULT_MODELS[0]
+  });
 }
 
 export async function POST(req:Request){
@@ -59,7 +85,12 @@ export async function POST(req:Request){
     const key=process.env.NVIDIA_API_KEY;
 
     if(!key){
-      return NextResponse.json({reply:localFallback(message),model:'local-fallback',fallback:true});
+      return NextResponse.json({
+        reply:localFallback(message,'missing-key'),
+        model:'local-fallback',
+        fallback:true,
+        configured:false
+      });
     }
 
     const order=[model,...DEFAULT_MODELS].filter((x,i,a)=>Boolean(x)&&a.indexOf(x)===i) as string[];
@@ -68,14 +99,28 @@ export async function POST(req:Request){
     for(const candidate of order){
       try{
         const reply=await callModel(candidate,message,key);
-        return NextResponse.json({reply,model:candidate,fallback:candidate!==model});
+        return NextResponse.json({
+          reply,
+          model:candidate,
+          fallback:candidate!==model,
+          configured:true
+        });
       }catch(e){
         lastError=e instanceof Error?e.message:lastError;
+        console.error('[Scoryn NVIDIA]',lastError);
       }
     }
 
-    return NextResponse.json({reply:localFallback(message),model:'local-fallback',fallback:true,warning:lastError});
+    return NextResponse.json({
+      reply:localFallback(message,'model-error'),
+      model:'local-fallback',
+      fallback:true,
+      configured:true,
+      warning:lastError
+    });
   }catch(e){
-    return NextResponse.json({error:e instanceof Error?e.message:'Invalid chat request.'},{status:400});
+    return NextResponse.json({
+      error:e instanceof Error?e.message:'Invalid chat request.'
+    },{status:400});
   }
 }
