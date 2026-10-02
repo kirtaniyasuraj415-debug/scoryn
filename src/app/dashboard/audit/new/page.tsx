@@ -1,16 +1,28 @@
 "use client";
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, FileSearch, Globe2, LoaderCircle, Sparkles } from 'lucide-react';
 import { ScorynMark } from '@/components/brand/scoryn-mark';
+import { getFirebaseClient } from '@/lib/firebase/client';
 
 export default function NewAudit(){
   const [url,setUrl]=useState('');
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [status,setStatus]=useState('');
+  const [language,setLanguage]=useState('HINGLISH');
   const router=useRouter();
+
+  useEffect(()=>{
+    try{
+      const raw=localStorage.getItem('scoryn_preferences');
+      if(raw){
+        const p=JSON.parse(raw);
+        if(p.language) setLanguage(p.language);
+      }
+    }catch{}
+  },[]);
 
   async function submit(e:FormEvent){
     e.preventDefault();
@@ -20,16 +32,31 @@ export default function NewAudit(){
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),105000);
     try{
+      const {auth}=getFirebaseClient();
+      const current=auth.currentUser;
+      if(current){
+        const idToken=await current.getIdToken();
+        await fetch('/api/auth/session',{
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          body:JSON.stringify({idToken})
+        });
+      }
+
       const res=await fetch('/api/audit/demo',{
         method:'POST',
         headers:{'content-type':'application/json'},
-        body:JSON.stringify({url}),
+        body:JSON.stringify({url,language}),
         signal:controller.signal
       });
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||'Audit could not start.');
       setStatus('Audit complete. Opening report…');
-      router.push(`/demo/${data.id}`);
+      if(data.reportId){
+        router.push(`/dashboard/report/${data.reportId}`);
+      }else{
+        router.push(`/demo/${data.id}`);
+      }
     }catch(e){
       const message=e instanceof Error
         ? (e.name==='AbortError'?'Audit took too long. Please retry once.':e.message)
@@ -67,10 +94,26 @@ export default function NewAudit(){
                   placeholder="https://clientwebsite.com"
                   className="h-12 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-14 sm:text-base"
                 />
-                <div className="flex items-center gap-2 px-2 pb-1 text-[10px] text-zinc-700">
+                <div className="flex flex-wrap items-center gap-2 px-2 pb-1 text-[10px] text-zinc-700">
                   <Globe2 className="h-3.5 w-3.5"/>Mobile + desktop
                   <span>•</span>
                   <Sparkles className="h-3.5 w-3.5"/>AI-ready report
+                </div>
+                <div className="mt-2 px-2">
+                  <select
+                    value={language}
+                    onChange={e=>setLanguage(e.target.value)}
+                    className="h-9 rounded-xl border border-white/[.06] bg-[#090909] px-3 text-xs text-zinc-400 outline-none focus:border-magenta/20"
+                  >
+                    <option value="ENGLISH">English</option>
+                    <option value="HINGLISH">Hinglish</option>
+                    <option value="HINDI">हिन्दी</option>
+                    <option value="BENGALI">বাংলা</option>
+                    <option value="MARATHI">मराठी</option>
+                    <option value="GUJARATI">ગુજરાતી</option>
+                    <option value="TAMIL">தமிழ்</option>
+                    <option value="TELUGU">తెలుగు</option>
+                  </select>
                 </div>
               </div>
               <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold disabled:opacity-40">
