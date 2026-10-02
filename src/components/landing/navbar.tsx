@@ -1,13 +1,11 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ScanSearch } from 'lucide-react';
+import { ScorynMark } from '@/components/brand/scoryn-mark';
 
 export function Navbar() {
   return <nav className="relative z-30 mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8 sm:py-6">
     <Link href="/" className="flex items-center gap-2.5 font-heading text-sm font-bold tracking-tight sm:text-base">
-      <span className="grid h-8 w-8 place-items-center rounded-lg border border-magenta/30 bg-gradient-to-br from-[#6f0c42] via-[#a81560] to-[#d33a86] text-white shadow-[0_0_28px_rgba(197,29,111,.24)]">
-        <ScanSearch className="h-4 w-4" />
-      </span>
+      <ScorynMark size={32}/>
       Scoryn
     </Link>
 
