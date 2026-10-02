@@ -8,8 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'glow-action text-white hover:-translate-y-0.5',
-        accent: 'glow-action text-white hover:-translate-y-0.5',
+        default: 'glow-action text-white',
+        accent: 'glow-action text-white',
         outline: 'border border-magenta/25 bg-magenta/[.055] text-rose hover:-translate-y-0.5 hover:border-rose/35 hover:bg-magenta/[.10] shadow-[0_0_26px_rgba(197,29,111,.08)]',
         ghost: 'text-zinc-300 hover:bg-magenta/[.06] hover:text-rose'
       },
