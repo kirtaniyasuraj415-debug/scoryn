@@ -24,7 +24,7 @@ export default function Clients(){
 
   const rows=clients.filter(c=>(c.name+' '+c.website+' '+c.contact).toLowerCase().includes(query.toLowerCase()));
 
-  return <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8">
+  return <div className="mx-auto min-h-[calc(100svh-4rem)] max-w-6xl px-4 py-10 pb-20 sm:px-8 lg:py-14">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div><p className="text-[10px] uppercase tracking-[.24em] text-rose/70">Clients</p><h1 className="mt-2 font-heading text-3xl font-bold">Client workspace</h1><p className="mt-2 text-sm text-zinc-600">Keep prospect websites and contact details ready for audits.</p></div>
       <button onClick={()=>setOpen(true)} className="glow-action inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold"><Plus className="h-4 w-4"/>Add client</button>
@@ -37,6 +37,18 @@ export default function Clients(){
         <div><div className="font-heading text-sm font-bold">{c.name}</div><div className="mt-1 text-[11px] text-zinc-600">{c.contact||c.whatsapp||'No contact yet'}</div></div>
         <div className="truncate text-xs text-zinc-600">{c.website}</div>
         <a href={c.website.startsWith('http')?c.website:`https://${c.website}`} target="_blank" className="grid h-9 w-9 place-items-center rounded-full border border-white/[.06] text-zinc-600 hover:border-magenta/20 hover:text-rose"><ExternalLink className="h-4 w-4"/></a>
+      </div>)}
+    </div>
+
+    <div className="mt-6 grid gap-3 md:grid-cols-3">
+      {[
+        ['01','Save prospects','Keep the company URL and contact person ready before you run an audit.'],
+        ['02','Run an audit','Open New Audit or paste the website directly into the AI Workspace.'],
+        ['03','Send the report','Share the branded result through PDF or a public client link.']
+      ].map(([step,title,copy])=><div key={step} className="reference-card rounded-[22px] p-5">
+        <div className="font-heading text-2xl font-bold text-rose/80">{step}</div>
+        <h3 className="mt-8 font-heading text-sm font-bold">{title}</h3>
+        <p className="mt-2 text-xs leading-6 text-zinc-600">{copy}</p>
       </div>)}
     </div>
 
