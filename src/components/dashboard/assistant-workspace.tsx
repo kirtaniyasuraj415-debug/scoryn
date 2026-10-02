@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
@@ -33,7 +33,7 @@ type PromptComposerProps={
   input:string;
   model:string;
   busy:boolean;
-  inputRef:RefObject<HTMLTextAreaElement>;
+  inputRef:RefObject<HTMLTextAreaElement | null>;
   onInput:(value:string)=>void;
   onModel:(value:string)=>void;
   onSubmit:()=>void;
