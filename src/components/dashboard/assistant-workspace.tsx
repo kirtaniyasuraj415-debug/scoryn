@@ -9,7 +9,6 @@ import {
   FileSearch,
   Globe2,
   LoaderCircle,
-  MessageSquarePlus,
   Paperclip,
   Sparkles,
   WandSparkles
@@ -124,6 +123,7 @@ export function AssistantWorkspace(){
   const [currentId,setCurrentId]=useState<string|null>(null);
   const [busy,setBusy]=useState(false);
   const [status,setStatus]=useState('');
+  const [viewportHeight,setViewportHeight]=useState<number|null>(null);
   const inputRef=useRef<HTMLTextAreaElement>(null);
   const messagesRef=useRef<HTMLDivElement>(null);
 
@@ -185,6 +185,33 @@ export function AssistantWorkspace(){
     try{localStorage.setItem('scoryn_model',model);}catch{}
   },[model]);
 
+  useEffect(()=>{
+    const syncViewport=()=>{
+      const next=Math.round(window.visualViewport?.height||window.innerHeight);
+      setViewportHeight(next);
+    };
+
+    const delayedSync=()=>{
+      window.setTimeout(syncViewport,60);
+      window.setTimeout(syncViewport,260);
+    };
+
+    syncViewport();
+    window.visualViewport?.addEventListener('resize',syncViewport);
+    window.visualViewport?.addEventListener('scroll',syncViewport);
+    window.addEventListener('resize',syncViewport);
+    document.addEventListener('focusin',delayedSync);
+    document.addEventListener('focusout',delayedSync);
+
+    return ()=>{
+      window.visualViewport?.removeEventListener('resize',syncViewport);
+      window.visualViewport?.removeEventListener('scroll',syncViewport);
+      window.removeEventListener('resize',syncViewport);
+      document.removeEventListener('focusin',delayedSync);
+      document.removeEventListener('focusout',delayedSync);
+    };
+  },[]);
+
   // Keep chat scrolling isolated inside the message pane. Never scroll the whole document.
   useEffect(()=>{
     const el=messagesRef.current;
@@ -229,15 +256,6 @@ export function AssistantWorkspace(){
     persist([session,...sessions.filter(s=>s.id!==id)]);
     setMessages(nextMessages);
     return id;
-  }
-
-  function startNewChat(){
-    setMessages([]);
-    setCurrentId(null);
-    setInput('');
-    setStatus('');
-    router.replace('/dashboard/ai',{scroll:false});
-    requestAnimationFrame(()=>inputRef.current?.focus({preventScroll:true}));
   }
 
   async function send(raw?:string){
@@ -292,11 +310,19 @@ export function AssistantWorkspace(){
 
   const hasConversation=messages.length>0;
 
+  const workspaceHeight=viewportHeight?Math.max(360,viewportHeight-64):null;
+
   if(!hasConversation){
-    return <section className="relative min-h-[calc(100dvh-4rem)] overflow-hidden">
+    return <section
+      className="relative min-h-[calc(100dvh-4rem)] overflow-hidden"
+      style={workspaceHeight?{minHeight:`${workspaceHeight}px`}:undefined}
+    >
       <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.25]"/>
       <div className="hero-ambient-glow pointer-events-none absolute left-1/2 top-[52%] h-[540px] w-[900px] -translate-x-1/2 rounded-full opacity-55"/>
-      <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center justify-center px-4 py-8 sm:px-6">
+      <div
+        className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center justify-center px-4 py-8 sm:px-6"
+        style={workspaceHeight?{minHeight:`${workspaceHeight}px`}:undefined}
+      >
         <div className="w-full max-w-[780px] text-center">
           <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-magenta/20 bg-[#0b090a] shadow-[0_0_34px_rgba(197,29,111,.14)]">
             <ScorynMark size={40} className="border-0 shadow-none"/>
@@ -332,16 +358,14 @@ export function AssistantWorkspace(){
     </section>;
   }
 
-  return <section className="relative h-[calc(100dvh-4rem)] min-h-[520px] overflow-hidden">
+  return <section
+    className="relative h-[calc(100dvh-4rem)] overflow-hidden"
+    style={workspaceHeight?{height:`${workspaceHeight}px`}:undefined}
+  >
     <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.16]"/>
 
     <div className="relative mx-auto flex h-full w-full max-w-[980px] flex-col px-4 sm:px-6">
-      <div className="flex shrink-0 items-center justify-between border-b border-white/[.045] py-4">
-        <div className="min-w-0"><div className="truncate text-xs text-zinc-300">{sessions.find(s=>s.id===currentId)?.title||'Current chat'}</div><div className="mt-1 text-[9px] text-zinc-700">Scoryn AI Workspace</div></div>
-        <button onClick={startNewChat} className="inline-flex h-9 items-center gap-2 rounded-full border border-white/[.06] bg-white/[.018] px-3 text-[10px] text-zinc-500 transition hover:border-magenta/15 hover:text-rose"><MessageSquarePlus className="h-3.5 w-3.5"/>New chat</button>
-      </div>
-
-      <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-6 [scrollbar-width:thin] [scrollbar-color:rgba(197,29,111,.22)_transparent]">
+      <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 pb-5 [scrollbar-width:thin] [scrollbar-color:rgba(197,29,111,.22)_transparent]">
         <div className="mx-auto max-w-[780px] space-y-5 pb-4">
           {messages.map((m,i)=><div key={i} className={m.role==='user'?'flex justify-end':'flex justify-start'}>
             <div className={m.role==='user'
@@ -355,7 +379,7 @@ export function AssistantWorkspace(){
         </div>
       </div>
 
-      <div className="chat-bottom-fade shrink-0 -mx-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:-mx-6 sm:px-6">
+      <div className="chat-bottom-fade shrink-0 -mx-4 px-4 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
         <PromptComposer
           compact
           input={input}
