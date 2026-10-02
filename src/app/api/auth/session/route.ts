@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getFirebaseAdmin } from '@/lib/firebase/admin';
-import { ensureUserWorkspace } from '@/lib/auth/workspace';
+
 import { SESSION_COOKIE } from '@/lib/auth/session';
 
 export async function POST(req: Request) {
@@ -8,7 +8,6 @@ export async function POST(req: Request) {
     const { idToken } = await req.json();
     const { auth } = getFirebaseAdmin();
     const decoded = await auth.verifyIdToken(idToken);
-    await ensureUserWorkspace(decoded.uid, decoded.email, decoded.name);
     const expiresIn = 1000 * 60 * 60 * 24 * 5;
     const session = await auth.createSessionCookie(idToken, { expiresIn });
     const res = NextResponse.json({ ok: true });
