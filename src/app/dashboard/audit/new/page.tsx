@@ -9,20 +9,36 @@ export default function NewAudit(){
   const [url,setUrl]=useState('');
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
+  const [status,setStatus]=useState('');
   const router=useRouter();
 
   async function submit(e:FormEvent){
     e.preventDefault();
     setError('');
+    setStatus('Testing mobile + desktop with Google PageSpeed…');
     setBusy(true);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),105000);
     try{
-      const res=await fetch('/api/audit/demo',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url})});
+      const res=await fetch('/api/audit/demo',{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({url}),
+        signal:controller.signal
+      });
       const data=await res.json();
       if(!res.ok) throw new Error(data.error||'Audit could not start.');
+      setStatus('Audit complete. Opening report…');
       router.push(`/demo/${data.id}`);
     }catch(e){
-      setError(e instanceof Error?e.message:'Audit failed.');
+      const message=e instanceof Error
+        ? (e.name==='AbortError'?'Audit took too long. Please retry once.':e.message)
+        : 'Audit failed.';
+      setError(message);
+      setStatus('');
       setBusy(false);
+    }finally{
+      clearTimeout(timeout);
     }
   }
 
@@ -66,7 +82,8 @@ export default function NewAudit(){
           </div>
         </form>
 
-        {error&&<p className="mx-auto mt-4 max-w-[760px] text-sm text-rose-300">{error}</p>}
+        {busy&&<p className="mx-auto mt-4 max-w-[760px] text-center text-xs text-zinc-600">{status} This normally takes around 20–60 seconds.</p>}
+        {error&&<p className="mx-auto mt-4 max-w-[760px] rounded-xl border border-red-400/10 bg-red-400/[.035] px-4 py-3 text-sm text-rose-300">{error}</p>}
 
         <div className="mx-auto mt-8 grid max-w-[760px] gap-3 md:grid-cols-3">
           {[
