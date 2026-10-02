@@ -60,18 +60,17 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
         router.replace('/login');
         return;
       }
-
       setUser(current);
       setName(current.displayName||'');
       setReady(true);
-
-      // Non-blocking: never hold the UI while Firestore initializes.
       void ensureClientWorkspace(current).catch(()=>{});
     });
     return unsubscribe;
   },[router]);
 
-  useEffect(()=>setMobileOpen(false),[pathname]);
+  useEffect(()=>{
+    setProfileOpen(false);
+  },[pathname]);
 
   const pageTitle=useMemo(()=>{
     const item=nav.find(([href])=>href===pathname);
@@ -99,7 +98,9 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     setSaving(true);
     try{
       await updateProfile(user,{displayName:name.trim()||null});
-      setUser({...user,displayName:name.trim()||null} as User);
+      const next={...user,displayName:name.trim()||null} as User;
+      setUser(next);
+      window.dispatchEvent(new CustomEvent('scoryn-profile-updated',{detail:{displayName:next.displayName}}));
       setEditOpen(false);
     }finally{
       setSaving(false);
@@ -117,62 +118,72 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
 
   if(!user) return null;
 
-  const sidebar=<aside className={cn(
-    'flex h-full flex-col border-r border-white/[.055] bg-[#09090a] transition-[width] duration-300',
-    collapsed?'w-[76px]':'w-[244px]'
-  )}>
-    <div className="flex h-16 items-center gap-3 border-b border-white/[.05] px-4">
-      <ScorynMark size={34}/>
-      {!collapsed&&<div className="min-w-0"><div className="font-heading text-sm font-bold">Scoryn</div><div className="text-[9px] text-zinc-700">AI Website Audit</div></div>}
-      <button onClick={toggleCollapsed} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-zinc-700 transition hover:bg-magenta/[.05] hover:text-rose lg:grid">
-        {collapsed?<PanelLeftOpen className="h-4 w-4"/>:<PanelLeftClose className="h-4 w-4"/>}
-      </button>
-    </div>
-
-    <nav className="space-y-1 px-3 py-4">
-      {nav.map(([href,Icon,label])=>{
-        const active=pathname===href;
-        return <Link key={href} href={href} className={cn(
-          'group flex h-11 items-center rounded-xl text-sm transition',
-          collapsed?'justify-center px-0':'gap-3 px-3',
-          active?'border border-magenta/15 bg-magenta/[.065] text-rose shadow-[inset_0_1px_0_rgba(255,255,255,.025)]':'text-zinc-600 hover:bg-white/[.025] hover:text-zinc-300'
-        )} title={collapsed?label:undefined}>
-          <Icon className="h-4 w-4 shrink-0"/>
-          {!collapsed&&<span>{label}</span>}
-        </Link>;
-      })}
-    </nav>
-
-    {!collapsed&&<div className="mx-3 mt-1 rounded-xl border border-white/[.045] bg-black/25 p-3">
-      <div className="text-[9px] uppercase tracking-[.2em] text-zinc-700">Recent</div>
-      <div className="mt-3 space-y-2 text-[11px] text-zinc-700">
-        <div className="truncate">Website audit conversations</div>
-        <div className="truncate">Client report drafts</div>
+  function SidebarPanel({forceExpanded=false,mobile=false}:{forceExpanded?:boolean;mobile?:boolean}){
+    const compact=forceExpanded?false:collapsed;
+    return <aside className={cn(
+      'flex h-full flex-col border-r border-white/[.055] bg-[#09090a] transition-[width] duration-300',
+      compact?'w-[76px]':'w-[244px]'
+    )}>
+      <div className="flex h-16 items-center gap-3 border-b border-white/[.05] px-4">
+        <ScorynMark size={34}/>
+        {!compact&&<div className="min-w-0"><div className="font-heading text-sm font-bold">Scoryn</div><div className="text-[9px] text-zinc-700">AI Website Audit</div></div>}
+        {mobile
+          ? <button onClick={()=>setMobileOpen(false)} className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-zinc-600 transition hover:bg-magenta/[.05] hover:text-rose"><X className="h-4 w-4"/></button>
+          : <button onClick={toggleCollapsed} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-zinc-700 transition hover:bg-magenta/[.05] hover:text-rose lg:grid">
+              {compact?<PanelLeftOpen className="h-4 w-4"/>:<PanelLeftClose className="h-4 w-4"/>}
+            </button>
+        }
       </div>
-    </div>}
 
-    <div className="mt-auto border-t border-white/[.05] p-3">
-      <button onClick={()=>setProfileOpen(v=>!v)} className={cn('flex w-full items-center rounded-xl transition hover:bg-white/[.025]',collapsed?'justify-center p-2':'gap-3 p-2')}>
-        <Avatar user={user} size={32}/>
-        {!collapsed&&<><div className="min-w-0 flex-1 text-left"><div className="truncate text-xs font-medium text-zinc-300">{user.displayName||'My profile'}</div><div className="truncate text-[9px] text-zinc-700">{user.email}</div></div><ChevronDown className="h-3.5 w-3.5 text-zinc-700"/></>}
-      </button>
-    </div>
-  </aside>;
+      <nav className="space-y-1 px-3 py-4">
+        {nav.map(([href,Icon,label])=>{
+          const active=pathname===href;
+          return <Link key={href} href={href} className={cn(
+            'group flex h-11 items-center rounded-xl text-sm transition',
+            compact?'justify-center px-0':'gap-3 px-3',
+            active?'border border-magenta/15 bg-magenta/[.065] text-rose shadow-[inset_0_1px_0_rgba(255,255,255,.025)]':'text-zinc-600 hover:bg-white/[.025] hover:text-zinc-300'
+          )} title={compact?label:undefined}>
+            <Icon className="h-4 w-4 shrink-0"/>
+            {!compact&&<span>{label}</span>}
+          </Link>;
+        })}
+      </nav>
+
+      {!compact&&<div className="mx-3 mt-1 rounded-xl border border-white/[.045] bg-black/25 p-3">
+        <div className="text-[9px] uppercase tracking-[.2em] text-zinc-700">Recent</div>
+        <div className="mt-3 space-y-2 text-[11px] text-zinc-700">
+          <div className="truncate">Website audit conversations</div>
+          <div className="truncate">Client report drafts</div>
+        </div>
+      </div>}
+
+      <div className="mt-auto border-t border-white/[.05] p-3">
+        <button onClick={()=>setProfileOpen(v=>!v)} className={cn('flex w-full items-center rounded-xl transition hover:bg-white/[.025]',compact?'justify-center p-2':'gap-3 p-2')}>
+          <Avatar user={user} size={32}/>
+          {!compact&&<><div className="min-w-0 flex-1 text-left"><div className="truncate text-xs font-medium text-zinc-300">{user.displayName||'My profile'}</div><div className="truncate text-[9px] text-zinc-700">{user.email}</div></div><ChevronDown className="h-3.5 w-3.5 text-zinc-700"/></>}
+        </button>
+      </div>
+    </aside>;
+  }
 
   return <div className="min-h-screen bg-[#070707] text-white">
-    <div className="fixed inset-y-0 left-0 z-40 hidden lg:block">{sidebar}</div>
+    <div className="fixed inset-y-0 left-0 z-40 hidden lg:block"><SidebarPanel/></div>
 
-    {mobileOpen&&<div className="fixed inset-0 z-[70] lg:hidden">
-      <button aria-label="Close sidebar" className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={()=>setMobileOpen(false)}/>
-      <div className="absolute inset-y-0 left-0 w-[270px] shadow-2xl">{sidebar}</div>
-      <button onClick={()=>setMobileOpen(false)} className="absolute left-[282px] top-4 grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-[#111] text-zinc-400"><X className="h-4 w-4"/></button>
-    </div>}
+    <div className={cn(
+      'fixed inset-y-0 left-0 z-[70] block shadow-[18px_0_60px_rgba(0,0,0,.42)] transition-transform duration-300 lg:hidden',
+      mobileOpen?'translate-x-0':'-translate-x-full'
+    )}>
+      <SidebarPanel forceExpanded mobile/>
+    </div>
 
     <header className={cn(
-      'fixed left-0 right-0 top-0 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/90 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
+      'fixed left-0 right-0 top-0 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/92 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
       collapsed?'lg:pl-[92px]':'lg:pl-[260px]'
     )}>
-      <button onClick={()=>setMobileOpen(true)} className="mr-2 grid h-9 w-9 place-items-center rounded-lg text-zinc-500 hover:bg-white/[.03] lg:hidden"><Menu className="h-5 w-5"/></button>
+      <button onClick={()=>setMobileOpen(true)} className={cn(
+        'mr-2 grid h-9 w-9 place-items-center rounded-lg text-zinc-500 transition hover:bg-white/[.03] hover:text-rose lg:hidden',
+        mobileOpen&&'pointer-events-none opacity-0'
+      )}><Menu className="h-5 w-5"/></button>
       <div className="hidden items-center gap-2 text-xs text-zinc-700 sm:flex"><span>Home</span><span>/</span><span className="text-zinc-400">{pageTitle}</span></div>
 
       <div className="ml-auto flex items-center gap-2">
