@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, FileSearch, Globe2, LoaderCircle, Sparkles } from 'lucide-react';
+import { ScorynMark } from '@/components/brand/scoryn-mark';
 
 export default function NewAudit(){
   const [url,setUrl]=useState('');
@@ -25,39 +26,60 @@ export default function NewAudit(){
     }
   }
 
-  return <div className="mx-auto min-h-[calc(100svh-4rem)] max-w-5xl px-4 py-10 pb-20 sm:px-8 lg:py-14">
-    <p className="text-[10px] uppercase tracking-[.24em] text-rose/70">New Audit</p>
-    <h1 className="mt-3 font-heading text-3xl font-bold tracking-[-.04em] sm:text-5xl">Paste the URL. Scoryn handles the rest.</h1>
-    <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-600">URL detect hote hi audit flow start hota hai. Current preview uses the demo/available PageSpeed pipeline and opens a client-ready result.</p>
+  return <div className="relative min-h-[calc(100svh-4rem)] overflow-hidden">
+    <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.30]"/>
+    <div className="hero-ambient-glow pointer-events-none absolute left-1/2 top-[48%] h-[520px] w-[880px] -translate-x-1/2 rounded-full opacity-55"/>
 
-    <form onSubmit={submit} className="assistant-prompt-shell mt-10 rounded-[22px] p-px">
-      <div className="relative overflow-hidden rounded-[21px] bg-[#0d0d0f] p-4">
-        <div className="assistant-prompt-glow pointer-events-none absolute inset-0"/>
-        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="min-w-0 flex-1">
-            <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://clientwebsite.com" className="h-12 w-full bg-transparent px-2 text-base outline-none placeholder:text-zinc-700"/>
-            <div className="flex items-center gap-2 px-2 text-[10px] text-zinc-700"><Globe2 className="h-3.5 w-3.5"/>Mobile + desktop <span>•</span><Sparkles className="h-3.5 w-3.5"/>AI-ready report</div>
+    <section className="relative mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl items-center px-4 py-12 sm:px-8">
+      <div className="w-full">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-magenta/20 bg-[#0b090a] shadow-[0_0_34px_rgba(197,29,111,.14)]">
+            <ScorynMark size={40} className="border-0 shadow-none"/>
           </div>
-          <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold disabled:opacity-40">
-            {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSearch className="h-4 w-4"/>}
-            Run audit
-            {!busy&&<ArrowUpRight className="h-4 w-4"/>}
-          </button>
+          <p className="text-[10px] uppercase tracking-[.24em] text-rose/70">New Audit</p>
+          <h1 className="mt-3 font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">Paste the URL. Scoryn handles the rest.</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-600">Website URL paste karo. Scoryn mobile + desktop checks ko start karke client-ready result open karega.</p>
+        </div>
+
+        <form onSubmit={submit} className="audit-shell mx-auto mt-9 w-full max-w-[760px] rounded-[22px] p-px">
+          <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3.5 sm:p-4">
+            <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <input
+                  value={url}
+                  onChange={e=>setUrl(e.target.value)}
+                  placeholder="https://clientwebsite.com"
+                  className="h-12 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-14 sm:text-base"
+                />
+                <div className="flex items-center gap-2 px-2 pb-1 text-[10px] text-zinc-700">
+                  <Globe2 className="h-3.5 w-3.5"/>Mobile + desktop
+                  <span>•</span>
+                  <Sparkles className="h-3.5 w-3.5"/>AI-ready report
+                </div>
+              </div>
+              <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold disabled:opacity-40">
+                {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSearch className="h-4 w-4"/>}
+                Run audit
+                {!busy&&<ArrowUpRight className="h-4 w-4"/>}
+              </button>
+            </div>
+          </div>
+        </form>
+
+        {error&&<p className="mx-auto mt-4 max-w-[760px] text-sm text-rose-300">{error}</p>}
+
+        <div className="mx-auto mt-8 grid max-w-[760px] gap-3 md:grid-cols-3">
+          {[
+            ['01','Testing speed','Mobile + desktop performance signals.'],
+            ['02','AI explanation','Technical issues in simple client language.'],
+            ['03','Report output','Branded result ready to share.']
+          ].map(([step,title,copy])=><div key={step} className="reference-card rounded-[20px] p-4">
+            <div className="font-heading text-xl font-bold text-rose/80">{step}</div>
+            <h3 className="mt-7 font-heading text-xs font-bold">{title}</h3>
+            <p className="mt-2 text-[10px] leading-5 text-zinc-600">{copy}</p>
+          </div>)}
         </div>
       </div>
-    </form>
-    {error&&<p className="mt-4 text-sm text-rose-300">{error}</p>}
-
-    <div className="mt-10 grid gap-3 md:grid-cols-3">
-      {[
-        ['01','Testing speed','Scoryn reads the website and prepares mobile + desktop performance data.'],
-        ['02','AI explanation','Technical issues are converted into simple client-facing language.'],
-        ['03','Report output','The result becomes a branded report that can be shared with the client.']
-      ].map(([step,title,copy])=><div key={step} className="reference-card rounded-[22px] p-5">
-        <div className="font-heading text-2xl font-bold text-rose/80">{step}</div>
-        <h3 className="mt-8 font-heading text-sm font-bold">{title}</h3>
-        <p className="mt-2 text-xs leading-6 text-zinc-600">{copy}</p>
-      </div>)}
-    </div>
+    </section>
   </div>;
 }
