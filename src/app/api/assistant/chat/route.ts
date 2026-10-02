@@ -7,7 +7,10 @@ const bodySchema=z.object({
 });
 
 const DEFAULT_MODELS=[
-  'mistralai/mistral-nemotron'
+  'z-ai/glm-5.3-flash',
+  'z-ai/glm-5.3',
+  'nvidia/nemotron-3-super-120b-a12b',
+  'openai/gpt-oss-20b'
 ];
 
 function localFallback(message:string,reason:'missing-key'|'model-error'){
@@ -24,7 +27,7 @@ function localFallback(message:string,reason:'missing-key'|'model-error'){
     return 'Hey 👋 Scoryn ready hai. NVIDIA endpoint abhi response nahi de raha; thodi der baad phir try karo.';
   }
 
-  return 'NVIDIA API key mil gayi hai, lekin current NVIDIA model endpoint request complete nahi kar paaya. Scoryn fallback mode mein hai; thodi der baad retry karo.';
+  return 'NVIDIA API key mil gayi hai, lekin available NVIDIA endpoints ne request complete nahi ki. Scoryn fallback mode mein hai; thodi der baad retry karo.';
 }
 
 async function callModel(model:string,message:string,key:string){
@@ -36,15 +39,15 @@ async function callModel(model:string,message:string,key:string){
       method:'POST',
       signal:controller.signal,
       headers:{
-        'accept':'application/json',
+        accept:'application/json',
         'content-type':'application/json',
-        'authorization':`Bearer ${key}`
+        authorization:`Bearer ${key}`
       },
       body:JSON.stringify({
         model,
-        temperature:.35,
-        top_p:.8,
-        max_tokens:900,
+        temperature:.4,
+        top_p:.9,
+        max_tokens:800,
         stream:false,
         messages:[
           {
@@ -64,19 +67,39 @@ async function callModel(model:string,message:string,key:string){
     const data:any=await res.json();
     const text=data?.choices?.[0]?.message?.content?.trim();
     if(!text) throw new Error(`${model} returned no text`);
-
     return text;
-  } finally {
+  }finally{
     clearTimeout(timeout);
   }
 }
 
-export async function GET(){
+export async function GET(req:Request){
   const key=process.env.NVIDIA_API_KEY;
-  return NextResponse.json({
-    configured:Boolean(key),
-    primaryModel:DEFAULT_MODELS[0]
-  });
+  const url=new URL(req.url);
+  const probe=url.searchParams.get('probe')==='1';
+
+  if(!probe){
+    return NextResponse.json({
+      configured:Boolean(key),
+      primaryModel:DEFAULT_MODELS[0]
+    });
+  }
+
+  if(!key){
+    return NextResponse.json({configured:false,ok:false,error:'missing-key'});
+  }
+
+  const failures:string[]=[];
+  for(const model of DEFAULT_MODELS){
+    try{
+      const reply=await callModel(model,'Reply with exactly: OK',key);
+      return NextResponse.json({configured:true,ok:true,model,reply});
+    }catch(e){
+      failures.push(e instanceof Error?e.message:String(e));
+    }
+  }
+
+  return NextResponse.json({configured:true,ok:false,failures},{status:502});
 }
 
 export async function POST(req:Request){
