@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { normalizeAuditUrl } from '@/lib/audit/url';
 import { createDemoAudit } from '@/lib/audit/demo';
+import { getServerUser } from '@/lib/auth/session';
+import { getDefaultWorkspaceId } from '@/lib/auth/workspace';
+import { getFirebaseAdmin } from '@/lib/firebase/admin';
+import { explainAuditIssues, isReportLanguage, type ReportLanguage } from '@/lib/audit/explain';
+import { PLANS } from '@/lib/plans';
+import { randomUUID } from 'crypto';
 
 export const maxDuration = 120;
 
@@ -273,19 +279,153 @@ async function createRealAudit(url:string){
   return {...result,overall};
 }
 
-async function makeResponse(raw:unknown){
-  const url=normalizeAuditUrl(String(raw??''));
+async function saveAuthenticatedReport(
+  user:{uid:string},
+  url:string,
+  result:any,
+  language:ReportLanguage
+){
+  const {db}=getFirebaseAdmin();
+  const workspaceId=await getDefaultWorkspaceId(user.uid);
+
+  const [workspaceSnap,brandingSnap]=await Promise.all([
+    db.collection('workspaces').doc(workspaceId).get(),
+    db.collection('branding').doc(workspaceId).get()
+  ]);
+
+  const plan=(workspaceSnap.data()?.plan||'FREE') as keyof typeof PLANS;
+  const now=new Date();
+  const monthStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1));
+  const usageId=`${workspaceId}_${monthStart.toISOString().slice(0,7)}`;
+  const usageRef=db.collection('usage').doc(usageId);
+  const usageSnap=await usageRef.get();
+  const used=Number(usageSnap.data()?.auditCount||0);
+  const limit=PLANS[plan].audits;
+
+  if(Number.isFinite(limit)&&used>=limit){
+    throw new Error(`${PLANS[plan].name} plan ka monthly audit limit complete ho gaya.`);
+  }
+
+  const issues=await explainAuditIssues(Array.isArray(result.issues)?result.issues:[],language);
+  const auditRef=db.collection('audits').doc();
+  const publicSlug=randomUUID().replace(/-/g,'').slice(0,20);
+
+  const auditData={
+    workspaceId,
+    createdById:user.uid,
+    clientId:null,
+    url,
+    status:'COMPLETED',
+    currentStep:'COMPLETE',
+    progress:100,
+    performanceScore:typeof result.performance==='number'?result.performance:null,
+    seoScore:typeof result.seo==='number'?result.seo:null,
+    accessibilityScore:typeof result.accessibility==='number'?result.accessibility:null,
+    bestPracticesScore:typeof result.bestPractices==='number'?result.bestPractices:null,
+    overallScore:typeof result.overall==='number'?result.overall:null,
+    mobile:result.mobile??null,
+    desktop:result.desktop??null,
+    coverage:result.coverage??null,
+    partial:Boolean(result.partial),
+    source:result.source||'Google PageSpeed Insights / Lighthouse',
+    requestedUrl:result.requestedUrl||url,
+    resolvedUrl:result.resolvedUrl||url,
+    reportLanguage:language,
+    publicSlug,
+    isPublic:true,
+    createdAt:now,
+    updatedAt:now,
+    completedAt:now
+  };
+
+  const batch=db.batch();
+  batch.set(auditRef,auditData);
+  batch.set(usageRef,{
+    workspaceId,
+    monthStart,
+    auditCount:used+1,
+    updatedAt:now
+  },{merge:true});
+
+  for(const issue of issues){
+    const issueRef=db.collection('auditIssues').doc();
+    batch.set(issueRef,{
+      auditId:auditRef.id,
+      workspaceId,
+      key:issue.key,
+      title:issue.title,
+      category:issue.category||'LIGHTHOUSE',
+      severity:issue.severity||'MEDIUM',
+      explanation:issue.explanation,
+      businessImpact:issue.businessImpact||'',
+      technicalDetail:issue.technicalDetail||null,
+      language,
+      createdAt:now
+    });
+  }
+
+  await batch.commit();
+
+  return {
+    reportId:auditRef.id,
+    result:{...result,issues},
+    agencyName:brandingSnap.data()?.agencyName||null
+  };
+}
+
+async function makeResponse(input:{url?:unknown;language?:unknown}){
+  const url=normalizeAuditUrl(String(input.url??''));
   const demo=process.env.DEMO_AUDIT_MODE==='true';
-  const result=demo ? createDemoAudit(url) : await createRealAudit(url);
-  const payload={url,result,exp:Date.now()+60*60*1000};
+  const user=await getServerUser();
+
+  let language:ReportLanguage='ENGLISH';
+
+  if(isReportLanguage(input.language)){
+    language=input.language;
+  }else if(user){
+    try{
+      const {db}=getFirebaseAdmin();
+      const workspaceId=await getDefaultWorkspaceId(user.uid);
+      const branding=await db.collection('branding').doc(workspaceId).get();
+      const saved=branding.data()?.reportLanguage;
+      if(isReportLanguage(saved)) language=saved;
+      else language='HINGLISH';
+    }catch{
+      language='HINGLISH';
+    }
+  }
+
+  let result:any=demo ? createDemoAudit(url) : await createRealAudit(url);
+  let reportId:string|null=null;
+
+  if(user){
+    const saved=await saveAuthenticatedReport(user,url,result,language);
+    result=saved.result;
+    reportId=saved.reportId;
+  }else{
+    result={...result,issues:await explainAuditIssues(Array.isArray(result.issues)?result.issues:[],language)};
+  }
+
+  const payload={url,result,language,exp:Date.now()+60*60*1000};
   const id=Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return {id,url,result};
+
+  return {
+    id,
+    url,
+    result,
+    language,
+    reportId,
+    authenticated:Boolean(user)
+  };
 }
 
 export async function GET(req:Request){
   try{
-    const raw=new URL(req.url).searchParams.get('url');
-    const data=await makeResponse(raw);
+    const url=new URL(req.url);
+    const data=await makeResponse({
+      url:url.searchParams.get('url'),
+      language:url.searchParams.get('language')
+    });
     return NextResponse.json(data);
   }catch(e){
     console.error('[Scoryn Audit]',e);
@@ -297,9 +437,12 @@ export async function GET(req:Request){
 
 export async function POST(req:Request){
   try{
-    const {url}=await req.json();
-    const data=await makeResponse(url);
-    return NextResponse.json({id:data.id});
+    const body=await req.json();
+    const data=await makeResponse({
+      url:body?.url,
+      language:body?.language
+    });
+    return NextResponse.json(data);
   }catch(e){
     console.error('[Scoryn Audit]',e);
     return NextResponse.json({
