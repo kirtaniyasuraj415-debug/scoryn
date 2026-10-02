@@ -180,7 +180,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
   function SidebarPanel({forceExpanded=false,mobile=false}:{forceExpanded?:boolean;mobile?:boolean}){
     const compact=forceExpanded?false:collapsed;
     return <aside className={cn(
-      'flex h-full flex-col border-r border-white/[.055] bg-[#09090a] transition-[width] duration-300',
+      'flex h-full max-h-[100dvh] flex-col overflow-hidden border-r border-white/[.055] bg-[#09090a] transition-[width] duration-300',
       mobile?'w-[min(86vw,340px)]':compact?'w-[72px]':'w-[224px]'
     )}>
       <div className={cn(
@@ -197,34 +197,34 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
         }
       </div>
 
-      <div className="px-2.5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <NavGroup label="Workspace" items={workspaceNav} compact={compact}/>
         <NavGroup label="Manage" items={manageNav} compact={compact}/>
+
+        {!compact&&<>
+          <div className="mx-0.5 mt-5">
+            <div className="flex items-center justify-between px-1">
+              <div className="text-[9px] font-medium uppercase tracking-[.2em] text-zinc-800">Recent chats</div>
+              <Link href="/dashboard/ai" onClick={()=>{ if(window.innerWidth<768) setMobileOpen(false); }} className="grid h-6 w-6 place-items-center rounded-md text-zinc-700 transition hover:bg-white/[.03] hover:text-rose"><Plus className="h-3.5 w-3.5"/></Link>
+            </div>
+            <div className="mt-2 space-y-1">
+              {recentChats.length
+                ? recentChats.map(chat=><Link key={chat.id} href={`/dashboard/ai?chat=${encodeURIComponent(chat.id)}`} onClick={()=>{ if(window.innerWidth<768) setMobileOpen(false); }} className="flex items-center gap-2 rounded-lg px-2 py-2 text-[10px] text-zinc-600 transition hover:bg-white/[.025] hover:text-zinc-300">
+                    <MessageSquareText className="h-3.5 w-3.5 shrink-0 text-zinc-700"/><span className="truncate">{chat.title}</span>
+                  </Link>)
+                : <div className="px-2 py-2 text-[10px] text-zinc-800">No chats yet</div>}
+            </div>
+          </div>
+
+          <div className="sidebar-usage-card mx-0.5 mt-4 rounded-2xl p-3">
+            <div className="flex items-center justify-between"><span className="text-[10px] text-zinc-400">Free plan</span><span className="text-[9px] text-rose">0 / 3</span></div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[.05]"><div className="h-full w-[8%] rounded-full bg-gradient-to-r from-[#9d1457] to-[#e24c97]"/></div>
+            <Link href="/dashboard/billing" onClick={()=>{ if(window.innerWidth<768) setMobileOpen(false); }} className="mt-3 block text-[10px] text-zinc-600 transition hover:text-rose">View usage & plans →</Link>
+          </div>
+        </>}
       </div>
 
-      {!compact&&<>
-        <div className="mx-3 mt-5">
-          <div className="flex items-center justify-between px-1">
-            <div className="text-[9px] font-medium uppercase tracking-[.2em] text-zinc-800">Recent chats</div>
-            <Link href="/dashboard/ai" className="grid h-6 w-6 place-items-center rounded-md text-zinc-700 transition hover:bg-white/[.03] hover:text-rose"><Plus className="h-3.5 w-3.5"/></Link>
-          </div>
-          <div className="mt-2 space-y-1">
-            {recentChats.length
-              ? recentChats.map(chat=><Link key={chat.id} href={`/dashboard/ai?chat=${encodeURIComponent(chat.id)}`} className="flex items-center gap-2 rounded-lg px-2 py-2 text-[10px] text-zinc-600 transition hover:bg-white/[.025] hover:text-zinc-300">
-                  <MessageSquareText className="h-3.5 w-3.5 shrink-0 text-zinc-700"/><span className="truncate">{chat.title}</span>
-                </Link>)
-              : <div className="px-2 py-2 text-[10px] text-zinc-800">No chats yet</div>}
-          </div>
-        </div>
-
-        <div className="sidebar-usage-card mx-3 mt-4 rounded-2xl p-3">
-          <div className="flex items-center justify-between"><span className="text-[10px] text-zinc-400">Free plan</span><span className="text-[9px] text-rose">0 / 3</span></div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[.05]"><div className="h-full w-[8%] rounded-full bg-gradient-to-r from-[#9d1457] to-[#e24c97]"/></div>
-          <Link href="/dashboard/billing" className="mt-3 block text-[10px] text-zinc-600 transition hover:text-rose">View usage & plans →</Link>
-        </div>
-      </>}
-
-      <div className="mt-auto border-t border-white/[.05] p-3">
+      <div className="shrink-0 border-t border-white/[.05] bg-[#09090a] p-3">
         {!compact&&<Link href="/dashboard/settings" className="mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2 text-[11px] text-zinc-600 transition hover:bg-white/[.025] hover:text-zinc-300"><LifeBuoy className="h-4 w-4"/>Help & settings</Link>}
         <button onClick={()=>setProfileOpen(v=>!v)} className={cn('flex w-full items-center rounded-xl transition hover:bg-white/[.025]',compact?'justify-center p-2':'gap-3 p-2')}>
           <Avatar user={currentUser} size={32}/>
