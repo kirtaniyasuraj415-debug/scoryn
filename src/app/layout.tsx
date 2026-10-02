@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Inter } from 'next/font/google';
+import { DM_Sans, Manrope } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-manrope',
   display: 'swap'
 });
 
@@ -20,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className={`${inter.variable} ${dmSans.variable}`}><body>{children}</body></html>;
+  return <html lang="en" className={`${manrope.variable} ${dmSans.variable}`}><body>{children}</body></html>;
 }
