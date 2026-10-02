@@ -62,11 +62,11 @@ export function OverviewDashboard(){
     <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map(([Icon,label,value,copy])=><article key={label} className="dashboard-panel rounded-[20px] p-4">
         <div className="flex items-start justify-between">
-          <div className="grid h-9 w-9 place-items-center rounded-xl border border-magenta/12 bg-magenta/[.045] text-rose"><Icon className="h-4 w-4"/></div>
+          <div className="grid h-9 w-9 place-items-center rounded-xl border border-magenta/10 bg-magenta/[.045] text-rose"><Icon className="h-4 w-4"/></div>
           <span className="font-heading text-2xl text-zinc-100">{value}</span>
         </div>
         <h2 className="mt-6 text-xs font-medium text-zinc-300">{label}</h2>
-        <p className="mt-1 text-[10px] text-zinc-650">{copy}</p>
+        <p className="mt-1 text-[10px] text-zinc-600">{copy}</p>
       </article>)}
     </div>
 
@@ -75,7 +75,7 @@ export function OverviewDashboard(){
         <div className="grid gap-3 lg:grid-cols-[.85fr_1.15fr]">
           <article className="dashboard-panel rounded-[22px] p-5">
             <div className="flex items-center justify-between">
-              <div><h2 className="font-heading text-sm text-zinc-200">Audit activity</h2><p className="mt-1 text-[10px] text-zinc-650">Last 6 weeks</p></div>
+              <div><h2 className="font-heading text-sm text-zinc-200">Audit activity</h2><p className="mt-1 text-[10px] text-zinc-600">Last 6 weeks</p></div>
               <BarChart3 className="h-4 w-4 text-rose"/>
             </div>
             <div className="mt-6 grid grid-cols-7 gap-2">
@@ -86,7 +86,7 @@ export function OverviewDashboard(){
 
           <article className="dashboard-panel rounded-[22px] p-5">
             <div className="flex items-center justify-between">
-              <div><h2 className="font-heading text-sm text-zinc-200">Average score trend</h2><p className="mt-1 text-[10px] text-zinc-650">Performance across completed audits</p></div>
+              <div><h2 className="font-heading text-sm text-zinc-200">Average score trend</h2><p className="mt-1 text-[10px] text-zinc-600">Performance across completed audits</p></div>
               <Gauge className="h-4 w-4 text-rose"/>
             </div>
             <div className="relative mt-6 h-44 overflow-hidden rounded-2xl border border-white/[.04] bg-black/25">
@@ -94,14 +94,14 @@ export function OverviewDashboard(){
               <svg viewBox="0 0 336 100" className="absolute inset-x-5 bottom-5 h-[120px] w-[calc(100%-2.5rem)]" preserveAspectRatio="none">
                 <polyline points={linePoints} fill="none" stroke="rgba(197,29,111,.35)" strokeWidth="2"/>
               </svg>
-              <div className="absolute inset-0 grid place-items-center"><span className="rounded-full border border-white/[.05] bg-black/70 px-3 py-1.5 text-[10px] text-zinc-650">Run an audit to populate this chart</span></div>
+              <div className="absolute inset-0 grid place-items-center"><span className="rounded-full border border-white/[.05] bg-black/70 px-3 py-1.5 text-[10px] text-zinc-600">Run an audit to populate this chart</span></div>
             </div>
           </article>
         </div>
 
         <article className="dashboard-panel rounded-[22px] p-5">
           <div className="flex items-center justify-between">
-            <div><h2 className="font-heading text-sm text-zinc-200">Recent workspace activity</h2><p className="mt-1 text-[10px] text-zinc-650">Chats, audits and reports</p></div>
+            <div><h2 className="font-heading text-sm text-zinc-200">Recent workspace activity</h2><p className="mt-1 text-[10px] text-zinc-600">Chats, audits and reports</p></div>
             <Link href="/dashboard/ai" className="text-[10px] text-rose">Open AI Workspace →</Link>
           </div>
 
@@ -111,9 +111,9 @@ export function OverviewDashboard(){
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-magenta/10 bg-magenta/[.035] text-rose"><MessageSquareText className="h-4 w-4"/></span>
                 <div className="min-w-0"><div className="truncate text-xs text-zinc-300">{chat.title}</div><div className="mt-1 text-[9px] text-zinc-700">AI conversation</div></div>
               </div>
-              <ArrowUpRight className="h-4 w-4 shrink-0 text-zinc-750"/>
+              <ArrowUpRight className="h-4 w-4 shrink-0 text-zinc-700"/>
             </Link>):<div className="grid min-h-40 place-items-center text-center">
-              <div><MessageSquareText className="mx-auto h-5 w-5 text-zinc-800"/><p className="mt-3 text-xs text-zinc-650">No recent activity yet.</p></div>
+              <div><MessageSquareText className="mx-auto h-5 w-5 text-zinc-800"/><p className="mt-3 text-xs text-zinc-600">No recent activity yet.</p></div>
             </div>}
           </div>
         </article>
@@ -121,7 +121,7 @@ export function OverviewDashboard(){
 
       <aside className="space-y-3">
         <article className="dashboard-panel rounded-[22px] p-5">
-          <div className="flex items-center justify-between"><div><h2 className="font-heading text-sm text-zinc-200">Free plan usage</h2><p className="mt-1 text-[10px] text-zinc-650">Current month</p></div><Gauge className="h-4 w-4 text-rose"/></div>
+          <div className="flex items-center justify-between"><div><h2 className="font-heading text-sm text-zinc-200">Free plan usage</h2><p className="mt-1 text-[10px] text-zinc-600">Current month</p></div><Gauge className="h-4 w-4 text-rose"/></div>
           <div className="mt-6 grid place-items-center">
             <div className="relative grid h-36 w-36 place-items-center rounded-full border-[10px] border-white/[.045]">
               <div className="absolute inset-[-10px] rotate-[-28deg] rounded-full border-[10px] border-transparent border-t-magenta border-r-rose/55"/>
@@ -139,7 +139,7 @@ export function OverviewDashboard(){
               ['/dashboard/clients',Users,'Add or manage clients'],
               ['/dashboard/reports',Files,'Open report library']
             ].map(([href,Icon,label]:any)=><Link key={href} href={href} className="flex items-center justify-between rounded-xl border border-white/[.045] bg-black/25 px-3 py-3 text-[11px] text-zinc-500 transition hover:border-magenta/15 hover:text-zinc-300">
-              <span className="flex items-center gap-2.5"><Icon className="h-4 w-4 text-rose/80"/>{label}</span><ArrowUpRight className="h-3.5 w-3.5 text-zinc-750"/>
+              <span className="flex items-center gap-2.5"><Icon className="h-4 w-4 text-rose/80"/>{label}</span><ArrowUpRight className="h-3.5 w-3.5 text-zinc-700"/>
             </Link>)}
           </div>
         </article>
