@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -23,15 +23,11 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [error,setError]=useState('');
   const router=useRouter();
 
-  async function finish(user:any) {
-    try {
-      await ensureClientWorkspace(user);
-    } catch (e) {
-      console.warn('Workspace bootstrap skipped:', e);
-    }
-
+  function finish(user:any) {
     router.replace('/dashboard');
-    router.refresh();
+    void ensureClientWorkspace(user).catch((e)=>{
+      console.warn('Workspace bootstrap continued in background:', e);
+    });
   }
 
   async function submit(e:FormEvent) {
@@ -45,10 +41,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       if(mode==='signup'){
         const c=await createUserWithEmailAndPassword(auth,email,password);
         if(name) await updateProfile(c.user,{displayName:name});
-        await finish(c.user);
+        finish(c.user);
       } else {
         const c=await signInWithEmailAndPassword(auth,email,password);
-        await finish(c.user);
+        finish(c.user);
       }
     } catch(e) {
       setError(e instanceof Error ? e.message : 'Authentication failed.');
@@ -65,7 +61,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       const provider=new GoogleAuthProvider();
       provider.setCustomParameters({prompt:'select_account'});
       const c=await signInWithPopup(auth,provider);
-      await finish(c.user);
+      finish(c.user);
     } catch(e) {
       setError(e instanceof Error ? e.message : 'Google sign-in failed.');
       setBusy(false);
