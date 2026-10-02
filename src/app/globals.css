@@ -679,6 +679,18 @@ h1,h2,h3,h4,h5,h6,.font-heading {
 
 
 
+
+
+.dashboard-ambient-glow {
+  background:
+    radial-gradient(ellipse at center,
+      rgba(240,164,207,.11) 0%,
+      rgba(197,29,111,.075) 24%,
+      rgba(111,10,59,.045) 45%,
+      transparent 72%);
+  filter: blur(72px);
+  animation: ambient-breathe 7s ease-in-out infinite;
+}
 /* Dashboard AI workspace */
 .scoryn-orb {
   animation: scoryn-orb-float 5.8s ease-in-out infinite;
