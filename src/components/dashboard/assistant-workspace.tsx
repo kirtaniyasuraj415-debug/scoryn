@@ -21,7 +21,10 @@ type ChatMessage={role:'user'|'assistant';content:string};
 type ChatSession={id:string;title:string;messages:ChatMessage[];updatedAt:number};
 
 export const NVIDIA_MODELS=[
-  {id:'mistralai/mistral-nemotron',label:'Mistral Nemotron',hint:'NVIDIA Free Endpoint'}
+  {id:'z-ai/glm-5.3-flash',label:'GLM 5.3 Flash',hint:'Fast'},
+  {id:'z-ai/glm-5.3',label:'GLM 5.3',hint:'Reasoning'},
+  {id:'nvidia/nemotron-3-super-120b-a12b',label:'Nemotron 3 Super',hint:'NVIDIA'},
+  {id:'openai/gpt-oss-20b',label:'GPT-OSS 20B',hint:'Fast'}
 ] as const;
 
 type PromptComposerProps={
@@ -67,16 +70,16 @@ function PromptComposer({
         className={`relative z-10 w-full resize-none bg-transparent px-2 pt-1 text-base font-normal leading-6 text-white outline-none placeholder:text-zinc-700 sm:text-sm ${compact?'min-h-[50px]':'min-h-[76px]'}`}
       />
 
-      <div className="relative z-10 mt-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <div className="relative z-10 mt-2 flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <button type="button" className="grid h-9 w-9 place-items-center rounded-full border border-white/[.06] bg-[#0a0a0a] text-zinc-600 transition hover:border-magenta/20 hover:text-rose">
             <Paperclip className="h-4 w-4"/>
           </button>
 
-          <label className="flex h-9 max-w-[230px] items-center gap-2 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-500">
+          <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-full border border-white/[.06] bg-[#0a0a0a] px-3 text-[10px] text-zinc-500 sm:max-w-[220px]">
             <Bot className="h-3.5 w-3.5 shrink-0 text-rose"/>
-            <select value={model} onChange={e=>onModel(e.target.value)} className="min-w-0 max-w-[170px] bg-transparent text-zinc-300 outline-none">
-              {NVIDIA_MODELS.map(m=><option className="bg-[#101010]" key={m.id} value={m.id}>{m.label} · {m.hint}</option>)}
+            <select value={model} onChange={e=>onModel(e.target.value)} className="min-w-0 w-full bg-transparent text-[10px] text-zinc-300 outline-none sm:text-[11px]">
+              {NVIDIA_MODELS.map(m=><option className="bg-[#101010]" key={m.id} value={m.id}>{m.label}</option>)}
             </select>
           </label>
 
@@ -85,7 +88,7 @@ function PromptComposer({
           </span>
         </div>
 
-        <button type="submit" disabled={!input.trim()||busy} className="glow-action grid h-10 w-10 place-items-center rounded-full disabled:opacity-35">
+        <button type="submit" disabled={!input.trim()||busy} className="glow-action ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-full disabled:opacity-35">
           {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<ArrowUp className="h-4 w-4"/>}
         </button>
       </div>
