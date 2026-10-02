@@ -1,9 +1,54 @@
 import { NextResponse } from 'next/server';
-import { renderToBuffer } from '@react-pdf/renderer';
+import { Font, renderToBuffer } from '@react-pdf/renderer';
 import { requireServerUser } from '@/lib/auth/session';
 import { getDefaultWorkspaceId } from '@/lib/auth/workspace';
 import { loadReportData } from '@/lib/report/load';
 import { ReportPDF } from '@/lib/report/pdf';
+
+const fontFamilies:Record<string,string>={
+  HINDI:'Noto Sans Devanagari',
+  MARATHI:'Noto Sans Devanagari',
+  BENGALI:'Noto Sans Bengali',
+  GUJARATI:'Noto Sans Gujarati',
+  TAMIL:'Noto Sans Tamil',
+  TELUGU:'Noto Sans Telugu'
+};
+
+const registeredFonts=new Set<string>();
+
+async function ensureReportFont(language:string|undefined){
+  const googleFamily=language?fontFamilies[language]:undefined;
+  if(!googleFamily) return 'Helvetica';
+
+  const pdfFamily='Scoryn '+googleFamily;
+  if(registeredFonts.has(pdfFamily)) return pdfFamily;
+
+  try{
+    const cssUrl='https://fonts.googleapis.com/css2?family='+
+      encodeURIComponent(googleFamily)+':wght@400&display=swap';
+    const cssRes=await fetch(cssUrl,{
+      cache:'force-cache',
+      headers:{'user-agent':'Mozilla/5.0'}
+    });
+    if(!cssRes.ok) return 'Helvetica';
+
+    const css=await cssRes.text();
+    const match=css.match(/src:\s*url\((https:[^)]+)\)\s*format\(['"]woff2['"]\)/i);
+    const src=match?.[1];
+    if(!src) return 'Helvetica';
+
+    Font.register({
+      family:pdfFamily,
+      src,
+      fontWeight:400
+    });
+    registeredFonts.add(pdfFamily);
+    return pdfFamily;
+  }catch(e){
+    console.error('[Scoryn PDF font]',e);
+    return 'Helvetica';
+  }
+}
 
 export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
   try{
@@ -16,7 +61,8 @@ export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
       return NextResponse.json({error:'Not found'},{status:404});
     }
 
-    const buf=await renderToBuffer(ReportPDF({data}));
+    const fontFamily=await ensureReportFont(data.audit.reportLanguage);
+    const buf=await renderToBuffer(ReportPDF({data,fontFamily}));
     return new NextResponse(buf as any,{
       headers:{
         'Content-Type':'application/pdf',
