@@ -1,5 +1,5 @@
-import { AssistantWorkspace } from '@/components/dashboard/assistant-workspace';
+import { OverviewDashboard } from '@/components/dashboard/overview-dashboard';
 
 export default function Dashboard(){
-  return <AssistantWorkspace/>;
+  return <OverviewDashboard/>;
 }
