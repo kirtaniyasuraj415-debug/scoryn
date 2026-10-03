@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -15,7 +15,20 @@ import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
+function friendlyAuthError(error:unknown){
+  const code=(error as any)?.code;
+  if(code==='auth/invalid-credential'||code==='auth/wrong-password'||code==='auth/user-not-found') return 'Email ya password sahi nahi hai.';
+  if(code==='auth/email-already-in-use') return 'Is email se account already bana hua hai. Log in karo.';
+  if(code==='auth/weak-password') return 'Password kam se kam 6 characters ka rakho.';
+  if(code==='auth/invalid-email') return 'Valid email address enter karo.';
+  if(code==='auth/popup-closed-by-user') return 'Google sign-in cancel ho gaya.';
+  if(code==='auth/popup-blocked') return 'Browser ne Google sign-in popup block kiya. Popup allow karke retry karo.';
+  if(code==='auth/unauthorized-domain') return 'Is website domain ko Firebase Authentication me allow karna hoga.';
+  if(error instanceof Error&&error.message) return error.message;
+  return 'Sign-in complete nahi hua. Please retry.';
+}
+
+export function AuthForm({mode}:{mode:'login'|'signup'}){
   const [name,setName]=useState('');
   const [email,setEmail]=useState('');
   const [password,setPassword]=useState('');
@@ -23,60 +36,62 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
   const [error,setError]=useState('');
   const router=useRouter();
 
-  async function finish(user:any) {
-    const idToken=await user.getIdToken();
+  async function finish(user:any){
+    const idToken=await user.getIdToken(true);
     const sessionRes=await fetch('/api/auth/session',{
       method:'POST',
       headers:{'content-type':'application/json'},
+      credentials:'same-origin',
       body:JSON.stringify({idToken})
     });
     if(!sessionRes.ok){
       const data=await sessionRes.json().catch(()=>({}));
-      throw new Error(data.error||'Could not create a secure session.');
+      throw new Error(data.error||'Secure sign-in session create nahi hui.');
+    }
+
+    try{
+      await ensureClientWorkspace(user);
+    }catch(e){
+      console.warn('Workspace bootstrap continued in background:',e);
     }
 
     router.replace('/dashboard');
     router.refresh();
-
-    void ensureClientWorkspace(user).catch((e)=>{
-      console.warn('Workspace bootstrap continued in background:',e);
-    });
   }
 
-  async function submit(e:FormEvent) {
+  async function submit(e:FormEvent){
     e.preventDefault();
     setBusy(true);
     setError('');
 
-    try {
+    try{
       const {auth}=getFirebaseClient();
-
       if(mode==='signup'){
         const c=await createUserWithEmailAndPassword(auth,email,password);
-        if(name) await updateProfile(c.user,{displayName:name});
+        if(name.trim()) await updateProfile(c.user,{displayName:name.trim()});
         await finish(c.user);
-      } else {
+      }else{
         const c=await signInWithEmailAndPassword(auth,email,password);
         await finish(c.user);
       }
-    } catch(e) {
-      setError(e instanceof Error ? e.message : 'Authentication failed.');
+    }catch(e){
+      setError(friendlyAuthError(e));
       setBusy(false);
     }
   }
 
-  async function google() {
+  async function google(){
     setBusy(true);
     setError('');
 
-    try {
+    try{
       const {auth}=getFirebaseClient();
       const provider=new GoogleAuthProvider();
       provider.setCustomParameters({prompt:'select_account'});
       const c=await signInWithPopup(auth,provider);
       await finish(c.user);
-    } catch(e) {
-      setError(e instanceof Error ? e.message : 'Google sign-in failed.');
+    }catch(e){
+      setError(friendlyAuthError(e));
       setBusy(false);
     }
   }
@@ -95,6 +110,6 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     <Button type="button" onClick={google} disabled={busy} variant="outline" className="w-full">
       Continue with Google
     </Button>
-    {error&&<p className="text-sm text-rose-300">{error}</p>}
+    {error&&<p role="alert" className="text-sm text-rose-300">{error}</p>}
   </form>;
 }
