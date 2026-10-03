@@ -8,29 +8,53 @@ export function DownloadPdfButton({reportId}:{reportId:string}){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
 
+  async function fetchPdf(){
+    return fetch(`/api/report/${reportId}/pdf`,{
+      cache:'no-store',
+      credentials:'same-origin'
+    });
+  }
+
+  async function refreshServerSession(){
+    const {auth}=getFirebaseClient();
+    const user=auth.currentUser;
+    if(!user) return false;
+
+    const idToken=await user.getIdToken(true);
+    const sessionRes=await fetch('/api/auth/session',{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({idToken})
+    });
+
+    return sessionRes.ok;
+  }
+
   async function download(){
     setBusy(true);
     setError('');
 
     try{
-      const {auth}=getFirebaseClient();
-      const user=auth.currentUser;
+      // First use the existing secure server session. A signed-in user should not be
+      // forced through authentication again just to download a report.
+      let res=await fetchPdf();
 
-      if(!user) throw new Error('Your login session is not available. Please refresh once.');
+      // If the server cookie expired but Firebase is still signed in, silently refresh
+      // the server session once and retry the PDF request.
+      if(res.status===401){
+        const refreshed=await refreshServerSession();
+        if(refreshed) res=await fetchPdf();
+      }
 
-      const idToken=await user.getIdToken();
-      const sessionRes=await fetch('/api/auth/session',{
-        method:'POST',
-        headers:{'content-type':'application/json'},
-        body:JSON.stringify({idToken})
-      });
-
-      if(!sessionRes.ok) throw new Error('Secure session could not be refreshed.');
-
-      const res=await fetch(`/api/report/${reportId}/pdf`,{cache:'no-store'});
       if(!res.ok){
         const data=await res.json().catch(()=>({}));
-        throw new Error(data.error||'PDF download failed.');
+        throw new Error(
+          data.error||
+          (res.status===401
+            ? 'Your secure session expired. Refresh the page once and try again.'
+            : 'PDF download failed.')
+        );
       }
 
       const blob=await res.blob();
@@ -41,7 +65,7 @@ export function DownloadPdfButton({reportId}:{reportId:string}){
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.setTimeout(()=>URL.revokeObjectURL(href),1000);
+      window.setTimeout(()=>URL.revokeObjectURL(href),1500);
     }catch(e){
       setError(e instanceof Error?e.message:'PDF download failed.');
     }finally{
@@ -59,6 +83,6 @@ export function DownloadPdfButton({reportId}:{reportId:string}){
       {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<Download className="h-4 w-4"/>}
       {busy?'Preparing PDF…':'Download PDF'}
     </button>
-    {error&&<p className="mt-2 max-w-[260px] text-xs text-rose-300">{error}</p>}
+    {error&&<p className="mt-2 max-w-[300px] text-xs text-rose-300">{error}</p>}
   </div>;
 }
