@@ -1,4 +1,4 @@
-import { getFirebaseAdmin } from '@/lib/firebase/admin';
+import { getFirebaseAdmin, isFirebaseAdminConfigured } from '@/lib/firebase/admin';
 
 export type ScorynServerUser={
   uid:string;
@@ -34,6 +34,10 @@ async function verifyWithIdentityToolkit(idToken:string):Promise<ScorynServerUse
 
 export async function verifyFirebaseIdToken(idToken:string):Promise<ScorynServerUser|null>{
   if(!idToken) return null;
+
+  if(!isFirebaseAdminConfigured()){
+    return verifyWithIdentityToolkit(idToken);
+  }
 
   try{
     const {auth}=getFirebaseAdmin();
