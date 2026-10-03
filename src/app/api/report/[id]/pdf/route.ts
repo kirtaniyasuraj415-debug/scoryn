@@ -50,7 +50,7 @@ async function ensureReportFont(language:string|undefined){
   }
 }
 
-export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
+export async function GET(req:Request,{params}:{params:Promise<{id:string}>}){
   try{
     const u=await requireServerUser();
     const {id}=await params;
@@ -61,12 +61,14 @@ export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){
       return NextResponse.json({error:'Not found'},{status:404});
     }
 
+    const mode=req.url?new URL(req.url).searchParams.get('mode'):'business';
+    const reportMode=mode==='developer'?'developer':'business';
     const fontFamily=await ensureReportFont(data.audit.reportLanguage);
-    const buf=await renderToBuffer(ReportPDF({data,fontFamily}));
+    const buf=await renderToBuffer(ReportPDF({data,fontFamily,mode:reportMode}));
     return new NextResponse(buf as any,{
       headers:{
         'Content-Type':'application/pdf',
-        'Content-Disposition':`attachment; filename="scoryn-${id}.pdf"`,
+        'Content-Disposition':`attachment; filename="scoryn-${reportMode}-${id}.pdf"`,
         'Cache-Control':'private, no-store'
       }
     });

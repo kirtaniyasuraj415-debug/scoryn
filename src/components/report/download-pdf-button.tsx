@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { Download, LoaderCircle } from 'lucide-react';
 import { getFirebaseClient } from '@/lib/firebase/client';
 
-export function DownloadPdfButton({reportId}:{reportId:string}){
+export function DownloadPdfButton({reportId,mode='business'}:{reportId:string;mode?:'business'|'developer'}){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
 
   async function fetchPdf(){
-    return fetch(`/api/report/${reportId}/pdf`,{
+    return fetch(`/api/report/${reportId}/pdf?mode=${mode}`,{
       cache:'no-store',
       credentials:'same-origin'
     });
@@ -61,7 +61,7 @@ export function DownloadPdfButton({reportId}:{reportId:string}){
       const href=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=href;
-      a.download=`scoryn-${reportId}.pdf`;
+      a.download=`scoryn-${mode}-${reportId}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -81,7 +81,7 @@ export function DownloadPdfButton({reportId}:{reportId:string}){
       className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/[.08] bg-white/[.025] px-4 text-sm text-zinc-300 transition hover:border-magenta/20 hover:bg-magenta/[.045] hover:text-white disabled:opacity-60"
     >
       {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<Download className="h-4 w-4"/>}
-      {busy?'Preparing PDF…':'Download PDF'}
+      {busy?'Preparing PDF…':mode==='developer'?'Developer PDF':'Business Owner PDF'}
     </button>
     {error&&<p className="mt-2 max-w-[300px] text-xs text-rose-300">{error}</p>}
   </div>;

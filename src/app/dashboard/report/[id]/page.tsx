@@ -8,112 +8,50 @@ import { Button } from '@/components/ui/button';
 import { DownloadPdfButton } from '@/components/report/download-pdf-button';
 import { ExternalLink } from 'lucide-react';
 
-const languageLabel:Record<string,string>={
-  ENGLISH:'English',
-  HINGLISH:'Hinglish',
-  HINDI:'हिन्दी',
-  BENGALI:'বাংলা',
-  MARATHI:'मराठी',
-  GUJARATI:'ગુજરાતી',
-  TAMIL:'தமிழ்',
-  TELUGU:'తెలుగు'
-};
+const languageLabel: Record<string, string> = { ENGLISH: 'English', HINGLISH: 'Hinglish', HINDI: 'हिन्दी', BENGALI: 'বাংলা', MARATHI: 'मराठी', GUJARATI: 'ગુજરાતી', TAMIL: 'தமிழ்', TELUGU: 'తెలుగు' };
 
-export default async function Report({params}:{params:Promise<{id:string}>}){
-  const u=await getServerUser();
-  if(!u) notFound();
-
-  const {id}=await params;
-  const {db}=getFirebaseAdmin();
-  const workspaceId=await getDefaultWorkspaceId(u.uid);
-  const a=await db.collection('audits').doc(id).get();
-
-  if(!a.exists||a.data()?.workspaceId!==workspaceId) notFound();
-
-  const d=a.data()!;
-  const issuesSnap=await db.collection('auditIssues').where('auditId','==',id).limit(50).get();
-  const issues=issuesSnap.docs.map(x=>({id:x.id,...x.data()} as any));
-  const partial=Boolean(d.partial);
-
-  const scoreCards=[
-    ['Performance',d.performanceScore],
-    [partial?'Technical SEO':'SEO',d.seoScore],
-    ['Accessibility',d.accessibilityScore],
-    ['Best Practices',d.bestPracticesScore]
-  ];
+export default async function Report({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ mode?: string }> }) {
+  const user = await getServerUser();
+  if (!user) notFound();
+  const { id } = await params;
+  const mode = (await searchParams)?.mode === 'developer' ? 'developer' : 'business';
+  const { db } = getFirebaseAdmin();
+  const workspaceId = await getDefaultWorkspaceId(user.uid);
+  const auditSnap = await db.collection('audits').doc(id).get();
+  if (!auditSnap.exists || auditSnap.data()?.workspaceId !== workspaceId) notFound();
+  const audit = auditSnap.data()!;
+  const issuesSnap = await db.collection('auditIssues').where('auditId', '==', id).limit(80).get();
+  const storedIssues = issuesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() } as any));
+  const business = audit.businessReport;
+  const developer = audit.developerReport;
+  const partial = Boolean(audit.partial);
+  const scoreCards = [['Performance', audit.performanceScore], [partial ? 'Technical SEO' : 'SEO', audit.seoScore], ['Accessibility', audit.accessibilityScore], ['Best Practices', audit.bestPracticesScore]];
 
   return <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <p className="text-xs uppercase tracking-[.24em] text-rose">{partial?'Partial technical audit':'Audit report'}</p>
-        <h1 className="mt-3 break-all text-2xl font-medium sm:text-4xl">{d.url}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600">
-          <span>{partial?'Scoryn fallback technical scan':'Mobile + desktop merged result'}</span>
-          <span>•</span>
-          <span>{languageLabel[d.reportLanguage]||'English'}</span>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <DownloadPdfButton reportId={id}/>
-        {d.publicSlug&&<Button asChild>
-          <a href={`/r/${d.publicSlug}`} target="_blank" rel="noreferrer">
-            <ExternalLink className="h-4 w-4"/>Share link
-          </a>
-        </Button>}
-      </div>
+      <div><p className="text-xs uppercase tracking-[.24em] text-rose">{partial ? 'Partial audit' : 'Audit report'}</p><h1 className="mt-3 break-all text-2xl font-medium sm:text-4xl">{audit.url}</h1><div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600"><span>{audit.pagesChecked || developer?.pages?.length || audit.rawAuditData?.pages?.length || 1} page(s) checked</span><span>•</span><span>{languageLabel[audit.reportLanguage] || 'English'}</span></div></div>
+      <div className="flex flex-wrap gap-2"><DownloadPdfButton reportId={id} mode="business"/><DownloadPdfButton reportId={id} mode="developer"/>{audit.publicSlug && <Button asChild><a href={`/r/${audit.publicSlug}`} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" />Share report</a></Button>}</div>
     </div>
 
-    {partial&&<div className="mt-6 rounded-2xl border border-amber-400/10 bg-amber-400/[.035] p-4 text-sm text-zinc-400">
-      Google Lighthouse could not finish this URL, so Scoryn saved a partial technical scan instead of inventing a performance score.
-    </div>}
+    {partial && <div className="mt-6 rounded-2xl border border-amber-400/10 bg-amber-400/[.035] p-4 text-sm text-zinc-400">One or more external browser-performance checks were unavailable. Scoryn has kept those values unavailable and shown only verified HTML, Lighthouse and configuration evidence.</div>}
 
-    <div className="mt-8 grid gap-4 rounded-3xl border border-white/[.07] bg-[#0d0d0d] p-6 md:grid-cols-[170px_1fr]">
-      <div className="grid place-items-center">
-        {typeof d.overallScore==='number'
-          ? <ScoreCircle score={d.overallScore}/>
-          : <div className="grid h-28 w-28 place-items-center rounded-full border-[7px] border-magenta/50 text-center">
-              <div><div className="text-3xl">—</div><div className="text-[10px] text-zinc-600">PARTIAL</div></div>
-            </div>}
-      </div>
+    <div className="mt-8 grid gap-4 rounded-3xl border border-white/[.07] bg-[#0d0d0d] p-6 md:grid-cols-[170px_1fr]"><div className="grid place-items-center"><ScoreCircle score={typeof audit.overallScore === 'number' ? audit.overallScore : 0} /></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{scoreCards.map(([label, score]) => <div key={String(label)} className="rounded-2xl border border-white/[.06] bg-black/30 p-4"><div className="text-2xl font-medium">{typeof score === 'number' ? score : '—'}</div><div className="mt-1 text-xs text-zinc-600">{String(label)}</div></div>)}</div></div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {scoreCards.map(([label,score])=><div key={label as string} className="rounded-2xl border border-white/[.06] bg-black/30 p-4">
-          <div className="text-2xl font-medium">{typeof score==='number'?score:'—'}</div>
-          <div className="mt-1 text-xs text-zinc-600">{label as string}</div>
-        </div>)}
-      </div>
-    </div>
+    <div className="mt-8 flex flex-wrap gap-2 rounded-2xl border border-white/[.07] bg-[#0d0d0d] p-2"><a href={`/dashboard/report/${id}?mode=business`} className={`rounded-xl px-4 py-2 text-sm transition ${mode === 'business' ? 'bg-magenta/[.12] text-rose' : 'text-zinc-500 hover:text-white'}`}>Business Owner Report</a><a href={`/dashboard/report/${id}?mode=developer`} className={`rounded-xl px-4 py-2 text-sm transition ${mode === 'developer' ? 'bg-magenta/[.12] text-rose' : 'text-zinc-500 hover:text-white'}`}>Developer Report</a></div>
 
-    <section className="mt-8 space-y-3">
-      <div className="mb-5">
-        <h2 className="text-2xl">Issues that matter</h2>
-        <p className="mt-1 text-sm text-zinc-600">Technical finding + simple business impact in your selected report language.</p>
-      </div>
-
-      {issues.length===0
-        ? <div className="rounded-2xl border border-white/[.07] p-7 text-sm text-zinc-600">No issue details stored for this audit yet.</div>
-        : issues.map((i:any)=><details key={i.id} className="group rounded-2xl border border-white/[.07] bg-[#0d0d0d] p-5">
-            <summary className="cursor-pointer list-none">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="font-medium">{i.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500">{i.explanation}</p>
-                </div>
-                <Badge className="text-rose">{i.severity}</Badge>
-              </div>
-            </summary>
-
-            <div className="mt-5 border-t border-white/[.06] pt-5">
-              <p className="text-xs uppercase tracking-wider text-zinc-600">Business impact</p>
-              <p className="mt-2 text-sm text-zinc-300">{i.businessImpact}</p>
-
-              {i.technicalDetail&&<>
-                <p className="mt-5 text-xs uppercase tracking-wider text-zinc-600">Technical detail</p>
-                <p className="mt-2 text-sm text-zinc-500">{i.technicalDetail}</p>
-              </>}
-            </div>
-          </details>)}
-    </section>
+    {mode === 'business' ? <BusinessView report={business} legacyIssues={storedIssues} partial={partial} /> : <DeveloperView report={developer} legacyIssues={storedIssues} />}
   </div>;
 }
+
+function BusinessView({ report, legacyIssues, partial }: { report: any; legacyIssues: any[]; partial: boolean }) {
+  const findings = Array.isArray(report?.findings) ? report.findings : legacyIssues.map((issue) => ({ findingId: issue.id, problem: issue.title, where: issue.affectedUrl || 'Affected page', customerExperience: issue.explanation, businessImpact: issue.businessImpact, importance: issue.severity, recommendedAction: issue.developerFix || 'Review the technical evidence with your developer.', technicalEvidence: issue.technicalDetail }));
+  return <section className="mt-8 space-y-5"><div className="rounded-3xl border border-white/[.07] bg-[#0d0d0d] p-6"><p className="text-xs uppercase tracking-[.22em] text-rose">SCORYN WEBSITE HEALTH REPORT</p><h2 className="mt-3 text-2xl">Overall website health</h2><p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-400">{report?.summary || 'Scoryn completed the available website checks.'}</p><div className="mt-7 grid gap-6 md:grid-cols-2"><SummaryList title="What’s working well" items={report?.workingWell} /><SummaryList title="What needs attention" items={report?.needsAttention} /><SummaryList title="What your customers may experience" items={report?.customerExperience} /><div><h3 className="text-sm text-zinc-300">What may affect Google visibility</h3><p className="mt-3 text-sm leading-6 text-zinc-500">{report?.googleVisibility || 'Technical SEO checks do not confirm actual Google search ranking.'}</p><p className="mt-2 text-xs leading-5 text-zinc-700">{report?.rankingDisclaimer}</p></div></div></div><div><h2 className="text-2xl">Top priorities</h2><p className="mt-1 text-sm text-zinc-600">Simple explanation first. Open technical details only when needed.</p><div className="mt-5 space-y-3">{findings.length ? findings.map((finding: any, index: number) => <details key={finding.findingId || index} className="group rounded-2xl border border-white/[.07] bg-[#0d0d0d] p-5"><summary className="cursor-pointer list-none"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] uppercase tracking-[.18em] text-zinc-700">Priority {index + 1} · {finding.where}</div><h3 className="mt-2 font-medium text-zinc-100">{finding.problem}</h3><p className="mt-2 text-sm leading-6 text-zinc-500">{finding.customerExperience}</p></div><Badge className="text-rose">{finding.importance}</Badge></div></summary><div className="mt-5 grid gap-4 border-t border-white/[.06] pt-5 md:grid-cols-2"><Info label="Business impact" value={finding.businessImpact} /><Info label="Recommended action" value={finding.recommendedAction} />{finding.technicalEvidence && <div className="md:col-span-2"><Info label="Technical details" value={finding.technicalEvidence} muted /></div>}</div></details>) : <div className="rounded-2xl border border-white/[.07] p-7 text-sm text-zinc-600">No priority issues were found in the checks that completed.</div>}</div></div><div className="rounded-2xl border border-magenta/15 bg-magenta/[.035] p-5"><h3 className="text-sm text-zinc-300">Recommended next steps</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-zinc-500">{(report?.nextSteps || []).map((step: string, index: number) => <li key={index}>{step}</li>)}</ol></div></section>;
+}
+
+function DeveloperView({ report, legacyIssues }: { report: any; legacyIssues: any[] }) {
+  const findings = Array.isArray(report?.findings) ? report.findings : legacyIssues;
+  return <section className="mt-8 space-y-5"><div className="rounded-3xl border border-white/[.07] bg-[#0d0d0d] p-6"><p className="text-xs uppercase tracking-[.22em] text-rose">SCORYN DEVELOPER AUDIT REPORT</p><p className="mt-3 text-sm leading-7 text-zinc-400">{report?.summary || 'Detailed evidence is available for the stored audit.'}</p><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{Object.entries(report?.engineStatus || {}).filter(([key]) => key !== 'errors').map(([key, value]) => <div key={key} className="rounded-xl border border-white/[.06] bg-black/20 p-3"><div className="text-[10px] uppercase tracking-wider text-zinc-700">{key}</div><div className="mt-2 text-xs text-zinc-300">{String(value)}</div></div>)}</div></div><div className="rounded-3xl border border-white/[.07] bg-[#0d0d0d] p-6"><h2 className="text-xl">Page coverage</h2><div className="mt-4 space-y-2">{(report?.pages || []).map((page: any) => <div key={page.finalUrl || page.url} className="grid gap-2 rounded-xl border border-white/[.05] bg-black/20 p-3 text-xs md:grid-cols-[minmax(0,1fr)_auto_auto_auto]"><span className="break-all text-zinc-400">{page.finalUrl || page.url}</span><span className="text-zinc-600">HTTP {page.status}</span><span className="text-zinc-600">{page.responseMs}ms</span><span className="text-zinc-600">{page.internalLinks?.length || 0} internal links</span></div>)}</div></div><div><h2 className="text-2xl">Actionable findings</h2><p className="mt-1 text-sm text-zinc-600">Exact URL, measured value, evidence and fix are kept separate from the business explanation.</p><div className="mt-5 space-y-3">{findings.length ? findings.map((finding: any, index: number) => <details key={finding.id || finding.findingId || index} className="rounded-2xl border border-white/[.07] bg-[#0d0d0d] p-5"><summary className="cursor-pointer list-none"><div className="flex items-start justify-between gap-4"><div><div className="text-[10px] uppercase tracking-[.18em] text-zinc-700">{finding.category} · {finding.source}</div><h3 className="mt-2 font-medium">{finding.title}</h3><p className="mt-2 text-sm leading-6 text-zinc-500">{finding.description || finding.evidence}</p></div><Badge className="text-rose">{finding.severity}</Badge></div></summary><div className="mt-5 grid gap-4 border-t border-white/[.06] pt-5 md:grid-cols-2"><Info label="Affected URL" value={finding.affectedUrl} code /><Info label="Measured · recommended" value={`${finding.measuredValue ?? 'Not reported'} · ${finding.recommendedValue ?? 'Not reported'}`} /><Info label="Element · selector · resource" value={[finding.affectedElement, finding.selector, finding.resourceUrl].filter(Boolean).join(' · ') || 'Not reported'} code /><Info label="Confidence" value={finding.confidence || 'Not reported'} /><Info label="Evidence" value={finding.evidence || finding.description} muted /><Info label="Exact fix" value={finding.developerFix || 'No scanner-specific fix was returned.'} muted /></div></details>) : <div className="rounded-2xl border border-white/[.07] p-7 text-sm text-zinc-600">No actionable issues were found in the checks that completed.</div>}</div></div><div className="rounded-2xl border border-white/[.07] bg-[#0d0d0d] p-5 text-sm text-zinc-500">Technical SEO checks and rankings are separate: {report?.ranking?.note || 'This audit does not confirm actual Google search ranking.'}</div></section>;
+}
+
+function SummaryList({ title, items }: { title: string; items?: unknown }) { const values = Array.isArray(items) ? items.filter((item): item is string => typeof item === 'string') : []; return <div><h3 className="text-sm text-zinc-300">{title}</h3><ul className="mt-3 space-y-2 text-sm leading-6 text-zinc-500">{(values.length ? values : ['No additional note from the completed checks.']).slice(0, 8).map((item, index) => <li key={index} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-magenta" />{item}</li>)}</ul></div>; }
+function Info({ label, value, muted = false, code = false }: { label: string; value: unknown; muted?: boolean; code?: boolean }) { return <div><div className="text-[10px] uppercase tracking-wider text-zinc-700">{label}</div><div className={`mt-2 break-words text-sm leading-6 ${muted ? 'text-zinc-500' : 'text-zinc-300'} ${code ? 'font-mono text-xs' : ''}`}>{value === null || value === undefined || value === '' ? 'Not reported' : String(value)}</div></div>; }

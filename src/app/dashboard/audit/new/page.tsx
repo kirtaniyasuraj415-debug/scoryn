@@ -11,6 +11,8 @@ export default function NewAudit(){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [status,setStatus]=useState('');
+  const [stageIndex,setStageIndex]=useState(0);
+  const stages=['Discovering pages…','Testing website speed…','Checking accessibility…','Checking SEO and website configuration…','Analyzing verified findings…','Creating Business Owner report…','Creating Developer report…','Preparing report…'];
   const [language,setLanguage]=useState('HINGLISH');
   const router=useRouter();
 
@@ -27,8 +29,10 @@ export default function NewAudit(){
   async function submit(e:FormEvent){
     e.preventDefault();
     setError('');
-    setStatus('Testing mobile + desktop with Google PageSpeed…');
+    setStageIndex(0);
+    setStatus(stages[0]);
     setBusy(true);
+    const stageTimer=setInterval(()=>setStageIndex(index=>{const next=Math.min(index+1,stages.length-1);setStatus(stages[next]);return next;}),6500);
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),105000);
 
@@ -67,6 +71,7 @@ export default function NewAudit(){
       setBusy(false);
     }finally{
       clearTimeout(timeout);
+      clearInterval(stageTimer);
     }
   }
 
@@ -125,7 +130,7 @@ export default function NewAudit(){
           </div>
         </form>
 
-        {busy&&<p className="mx-auto mt-4 max-w-[700px] text-center text-xs text-zinc-600">{status} This normally takes around 20–60 seconds.</p>}
+        {busy&&<div className="mx-auto mt-4 max-w-[700px] text-center text-xs text-zinc-600"><p>{status}</p><div className="mx-auto mt-3 flex max-w-[580px] flex-wrap justify-center gap-1.5">{stages.map((stage,index)=><span key={stage} className={`rounded-full border px-2.5 py-1 ${index<=stageIndex?'border-magenta/25 bg-magenta/[.06] text-rose/80':'border-white/[.05] text-zinc-800'}`}>{stage.replace('…','')}</span>)}</div></div>}
         {error&&<p className="mx-auto mt-4 max-w-[700px] rounded-xl border border-red-400/10 bg-red-400/[.035] px-4 py-3 text-sm text-rose-300">{error}</p>}
 
         <div className="mx-auto mt-8 grid max-w-[700px] gap-3 md:grid-cols-3">

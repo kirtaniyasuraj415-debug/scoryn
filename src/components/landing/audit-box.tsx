@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowUpRight, Globe2, LoaderCircle, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { getFirebaseClient } from '@/lib/firebase/client';
@@ -8,12 +8,22 @@ export function AuditBox() {
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [stage, setStage] = useState('Discovering pages…');
+  const stages=['Discovering pages…','Testing website speed…','Checking accessibility…','Checking SEO…','Creating both reports…'];
   const router = useRouter();
+
+  useEffect(()=>{
+    if(!busy) return;
+    let index=0;
+    const timer=window.setInterval(()=>{index=Math.min(index+1,stages.length-1);setStage(stages[index]);},7000);
+    return ()=>window.clearInterval(timer);
+  },[busy]);
 
   async function run() {
     setError('');
     if (!url.trim()) return setError('Website URL enter karo.');
     setBusy(true);
+    setStage(stages[0]);
     let language='ENGLISH';
     try{
       const raw=localStorage.getItem('scoryn_preferences');
@@ -92,7 +102,7 @@ export function AuditBox() {
         <span className="text-zinc-800">•</span>
         AI
       </div>
-      {busy && <p className="relative z-10 mt-2 px-3 text-left text-[10px] text-zinc-600">Testing mobile + desktop with Google PageSpeed… usually 20–60 seconds.</p>}
+      {busy && <p className="relative z-10 mt-2 px-3 text-left text-[10px] text-zinc-600">{stage} One scan se Business Owner aur Developer dono reports banengi.</p>}
       {error && <p className="relative z-10 mt-2 px-3 text-left text-xs text-rose-300">{error}</p>}
     </div>
   </div>;

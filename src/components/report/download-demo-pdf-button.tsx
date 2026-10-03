@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Download, LoaderCircle } from 'lucide-react';
 
-export function DownloadDemoPdfButton({reportId}:{reportId:string}){
+export function DownloadDemoPdfButton({reportId,mode='business'}:{reportId:string;mode?:'business'|'developer'}){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
 
@@ -14,7 +14,7 @@ export function DownloadDemoPdfButton({reportId}:{reportId:string}){
       const res=await fetch('/api/demo/pdf',{
         method:'POST',
         headers:{'content-type':'application/json'},
-        body:JSON.stringify({id:reportId})
+        body:JSON.stringify({id:reportId,mode})
       });
       if(!res.ok){
         const data=await res.json().catch(()=>({}));
@@ -25,7 +25,7 @@ export function DownloadDemoPdfButton({reportId}:{reportId:string}){
       const href=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=href;
-      a.download='scoryn-demo-audit.pdf';
+      a.download=`scoryn-demo-${mode}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -45,7 +45,7 @@ export function DownloadDemoPdfButton({reportId}:{reportId:string}){
       className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-magenta/25 bg-magenta/[.06] px-4 text-sm text-rose transition hover:bg-magenta/[.10] disabled:opacity-60"
     >
       {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<Download className="h-4 w-4"/>}
-      {busy?'Preparing PDF…':'Download PDF'}
+      {busy?'Preparing PDF…':mode==='developer'?'Developer PDF':'Business Owner PDF'}
     </button>
     {error&&<p role="alert" className="mt-2 text-xs text-rose-300">{error}</p>}
   </div>;

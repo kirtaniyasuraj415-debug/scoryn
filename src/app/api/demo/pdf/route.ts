@@ -41,6 +41,7 @@ export async function POST(req:Request){
   try{
     const body=await req.json().catch(()=>({}));
     const id=typeof body?.id==='string'?body.id:'';
+    const mode=body?.mode==='developer'?'developer':'business';
     if(!id) return NextResponse.json({error:'Missing report data.'},{status:400});
 
     let payload:any;
@@ -65,7 +66,9 @@ export async function POST(req:Request){
         accessibilityScore:typeof r.accessibility==='number'?r.accessibility:null,
         bestPracticesScore:typeof r.bestPractices==='number'?r.bestPractices:null,
         partial:Boolean(r.partial),
-        reportLanguage:language
+        reportLanguage:language,
+        businessReport:r.businessReport,
+        developerReport:r.developerReport
       },
       branding:{
         agencyName:'Scoryn',
@@ -78,11 +81,11 @@ export async function POST(req:Request){
     };
 
     const fontFamily=await ensureReportFont(language);
-    const buf=await renderToBuffer(ReportPDF({data,fontFamily}));
+    const buf=await renderToBuffer(ReportPDF({data,fontFamily,mode}));
     return new NextResponse(buf as any,{
       headers:{
         'Content-Type':'application/pdf',
-        'Content-Disposition':'attachment; filename="scoryn-demo-audit.pdf"',
+        'Content-Disposition':`attachment; filename="scoryn-demo-${mode}.pdf"`,
         'Cache-Control':'private, no-store'
       }
     });

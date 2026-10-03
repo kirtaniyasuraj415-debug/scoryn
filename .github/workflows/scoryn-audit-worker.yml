@@ -1,0 +1,46 @@
+name: Scoryn browser audit worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Public website URL
+        required: true
+        type: string
+      audit_id:
+        description: Firestore audit document ID
+        required: false
+        type: string
+  repository_dispatch:
+    types: [scoryn-audit]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: audit-worker/package.json
+      - name: Install worker dependencies
+        working-directory: audit-worker
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        working-directory: audit-worker
+        run: npx playwright install --with-deps chromium
+      - name: Run Scoryn worker
+        working-directory: audit-worker
+        env:
+          SCORYN_SITE: ${{ inputs.site || github.event.client_payload.url }}
+          SCORYN_AUDIT_ID: ${{ inputs.audit_id || github.event.client_payload.auditId }}
+          SCORYN_JOB_ID: ${{ github.event.client_payload.jobId }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: npm run audit
+      - name: Upload normalized worker artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scoryn-audit-${{ github.run_id }}
+          path: audit-worker/.scoryn-output/scoryn-normalized-audit.json
