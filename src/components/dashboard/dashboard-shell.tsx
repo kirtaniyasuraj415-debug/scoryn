@@ -68,29 +68,33 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     try{setCollapsed(localStorage.getItem('scoryn_sidebar_collapsed')==='1');}catch{}
     const {auth}=getFirebaseClient();
     const unsubscribe=onAuthStateChanged(auth,current=>{
+      if(!current){
+        setReady(true);
+        router.replace('/login');
+        return;
+      }
+
+      // Firebase client auth is the source of truth for entering the dashboard.
+      // Show the UI immediately; server session + workspace sync continue in background.
+      setUser(current);
+      setName(current.displayName||'');
+      setReady(true);
+
       void (async()=>{
-        if(!current){
-          setReady(true);
-          router.replace('/login');
-          return;
-        }
-
-        setUser(current);
-        setName(current.displayName||'');
-
         try{
           const idToken=await current.getIdToken();
-          await fetch('/api/auth/session',{
-            method:'POST',
-            headers:{'content-type':'application/json'},
-            body:JSON.stringify({idToken})
-          });
+          await Promise.allSettled([
+            fetch('/api/auth/session',{
+              method:'POST',
+              headers:{'content-type':'application/json'},
+              credentials:'same-origin',
+              body:JSON.stringify({idToken})
+            }),
+            ensureClientWorkspace(current)
+          ]);
         }catch(e){
-          console.warn('Server session sync failed:',e);
+          console.warn('Background dashboard bootstrap failed:',e);
         }
-
-        setReady(true);
-        void ensureClientWorkspace(current).catch(()=>{});
       })();
     });
     return unsubscribe;
