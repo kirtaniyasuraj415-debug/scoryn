@@ -71,6 +71,33 @@ function legacyResult(dataset: AuditDataset, reports: Awaited<ReturnType<typeof 
   };
 }
 
+function guestResult(dataset: AuditDataset, reports: Awaited<ReturnType<typeof buildDualReports>>) {
+  const full = legacyResult(dataset, reports);
+  return {
+    performance: full.performance,
+    seo: full.seo,
+    accessibility: full.accessibility,
+    bestPractices: full.bestPractices,
+    overall: full.overall,
+    coverage: full.coverage,
+    partial: full.partial,
+    source: full.source,
+    requestedUrl: full.requestedUrl,
+    resolvedUrl: full.resolvedUrl,
+    testedAt: full.testedAt,
+    metrics: full.metrics,
+    engines: full.engines,
+    ranking: full.ranking,
+    issues: full.issues,
+    businessReport: reports.business,
+    developerReport: {
+      ...reports.developer,
+      pages: reports.developer.pages.map((page) => ({ url: page.url, finalUrl: page.finalUrl, status: page.status, responseMs: page.responseMs, internalLinks: page.internalLinks.length })),
+      findings: reports.developer.findings.map((finding) => ({ ...finding, rawEvidence: {}, description: finding.description.slice(0, 500), affectedElement: finding.affectedElement?.slice(0, 300) || null, evidence: finding.evidence.slice(0, 700) }))
+    }
+  };
+}
+
 async function saveAuthenticatedReport(user: { uid: string }, url: string, dataset: AuditDataset, reports: Awaited<ReturnType<typeof buildDualReports>>, language: ReportLanguage) {
   const { db } = getFirebaseAdmin();
   const workspaceId = await getDefaultWorkspaceId(user.uid);
@@ -124,7 +151,7 @@ async function makeResponse(input: { url?: unknown; language?: unknown }) {
       console.warn('[Scoryn Audit] Firebase save failed; returning stateless report instead.', error);
     }
   }
-  const payload = { url, result, language, exp: Date.now() + 60 * 60 * 1000 };
+  const payload = { url, result: guestResult(dataset, reports), language, exp: Date.now() + 60 * 60 * 1000 };
   const id = Buffer.from(JSON.stringify(payload)).toString('base64url');
   return { id, url, result, language, reportId, authenticated: Boolean(user), storageMode, persistenceAvailable: adminReady };
 }
