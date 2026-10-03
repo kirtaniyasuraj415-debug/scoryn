@@ -43,7 +43,7 @@ export default function Home() {
 
         <div className="mt-8 w-full sm:mt-9">
           <AuditBox />
-          <p className="mt-3 text-[10px] text-zinc-700 sm:text-xs">Demo audit login ke bina • PDF account ke baad unlock hota hai</p>
+          <p className="mt-3 text-[10px] text-zinc-700 sm:text-xs">Demo audit + basic PDF login ke bina • account sirf save, branding aur client workspace ke liye</p>
         </div>
 
         <HeroShowcase />
