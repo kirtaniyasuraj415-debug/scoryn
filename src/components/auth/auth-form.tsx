@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
   updateProfile
@@ -38,7 +39,12 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
 
   useEffect(()=>{
     router.prefetch('/dashboard');
-  },[router]);
+    const {auth}=getFirebaseClient();
+    const unsubscribe=onAuthStateChanged(auth,current=>{
+      if(current&&!busy) router.replace('/dashboard');
+    });
+    return unsubscribe;
+  },[router,busy]);
 
   function finish(user:any){
     setBusy(false);
@@ -61,7 +67,7 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
           console.warn('Background sign-in bootstrap did not finish:',e);
         }
       })();
-    },250);
+    },150);
   }
 
   async function submit(e:FormEvent){
@@ -72,12 +78,12 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
     try{
       const {auth}=getFirebaseClient();
       if(mode==='signup'){
-        const c=await createUserWithEmailAndPassword(auth,email,password);
-        if(name.trim()) await updateProfile(c.user,{displayName:name.trim()});
-        finish(c.user);
+        const credential=await createUserWithEmailAndPassword(auth,email,password);
+        if(name.trim()) await updateProfile(credential.user,{displayName:name.trim()});
+        finish(credential.user);
       }else{
-        const c=await signInWithEmailAndPassword(auth,email,password);
-        finish(c.user);
+        const credential=await signInWithEmailAndPassword(auth,email,password);
+        finish(credential.user);
       }
     }catch(e){
       setError(friendlyAuthError(e));
@@ -92,8 +98,8 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
     try{
       const {auth}=getFirebaseClient();
       const provider=new GoogleAuthProvider();
-      const c=await signInWithPopup(auth,provider);
-      finish(c.user);
+      const credential=await signInWithPopup(auth,provider);
+      finish(credential.user);
     }catch(e){
       setError(friendlyAuthError(e));
       setBusy(false);
