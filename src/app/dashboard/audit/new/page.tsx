@@ -31,21 +31,17 @@ export default function NewAudit(){
     setBusy(true);
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),105000);
+
     try{
       const {auth}=getFirebaseClient();
       const current=auth.currentUser;
       if(current){
-        try{
-          const idToken=await current.getIdToken();
-          await fetch('/api/auth/session',{
-            method:'POST',
-            headers:{'content-type':'application/json'},
-            credentials:'same-origin',
-            body:JSON.stringify({idToken})
-          });
-        }catch(e){
-          console.warn('Audit session sync skipped:',e);
-        }
+        void current.getIdToken().then(idToken=>fetch('/api/auth/session',{
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          credentials:'same-origin',
+          body:JSON.stringify({idToken})
+        })).catch(e=>console.warn('Audit session sync skipped:',e));
       }
 
       const res=await fetch('/api/audit/demo',{
@@ -89,26 +85,26 @@ export default function NewAudit(){
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-600">Website URL paste karo. Scoryn mobile + desktop checks ko start karke client-ready result open karega.</p>
         </div>
 
-        <form onSubmit={submit} className="audit-shell mx-auto mt-8 w-full max-w-[760px] rounded-[22px] p-px">
-          <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3.5 sm:p-4">
+        <form onSubmit={submit} className="audit-shell mx-auto mt-8 w-full max-w-[700px] rounded-[22px] p-px">
+          <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3 sm:p-3.5">
             <input
               value={url}
               onChange={e=>setUrl(e.target.value)}
               placeholder="https://clientwebsite.com"
-              className="h-12 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-14 sm:text-base"
+              className="h-11 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-12 sm:text-base"
             />
 
-            <div className="flex flex-wrap items-center gap-2 px-2 pb-2 text-[10px] text-zinc-700">
+            <div className="flex items-center gap-2 px-2 pb-2 text-[10px] text-zinc-700">
               <Globe2 className="h-3.5 w-3.5"/>Mobile + desktop
               <span>•</span>
               <Sparkles className="h-3.5 w-3.5"/>AI-ready report
             </div>
 
-            <div className="mt-1 flex items-center gap-2 px-1">
+            <div className="grid grid-cols-[minmax(0,140px)_minmax(0,1fr)] gap-2 px-1 sm:grid-cols-[170px_minmax(0,1fr)]">
               <select
                 value={language}
                 onChange={e=>setLanguage(e.target.value)}
-                className="h-11 min-w-0 flex-1 rounded-full border border-white/[.07] bg-[#090909] px-4 text-xs text-zinc-300 outline-none transition focus:border-magenta/25 sm:max-w-[190px]"
+                className="h-11 min-w-0 rounded-full border border-white/[.07] bg-[#090909] px-3 text-xs text-zinc-300 outline-none transition focus:border-magenta/25"
               >
                 <option value="ENGLISH">English</option>
                 <option value="HINGLISH">Hinglish</option>
@@ -120,19 +116,19 @@ export default function NewAudit(){
                 <option value="TELUGU">తెలుగు</option>
               </select>
 
-              <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold disabled:opacity-40 sm:ml-auto sm:px-6 sm:text-sm">
-                {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSearch className="h-4 w-4"/>}
-                <span>{busy?'Auditing…':'Run audit'}</span>
-                {!busy&&<ArrowUpRight className="h-4 w-4"/>}
+              <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full px-3 text-xs font-semibold disabled:opacity-40 sm:px-6 sm:text-sm">
+                {busy?<LoaderCircle className="h-4 w-4 shrink-0 animate-spin"/>:<FileSearch className="h-4 w-4 shrink-0"/>}
+                <span className="truncate">{busy?'Auditing…':'Run audit'}</span>
+                {!busy&&<ArrowUpRight className="h-4 w-4 shrink-0"/>}
               </button>
             </div>
           </div>
         </form>
 
-        {busy&&<p className="mx-auto mt-4 max-w-[760px] text-center text-xs text-zinc-600">{status} This normally takes around 20–60 seconds.</p>}
-        {error&&<p className="mx-auto mt-4 max-w-[760px] rounded-xl border border-red-400/10 bg-red-400/[.035] px-4 py-3 text-sm text-rose-300">{error}</p>}
+        {busy&&<p className="mx-auto mt-4 max-w-[700px] text-center text-xs text-zinc-600">{status} This normally takes around 20–60 seconds.</p>}
+        {error&&<p className="mx-auto mt-4 max-w-[700px] rounded-xl border border-red-400/10 bg-red-400/[.035] px-4 py-3 text-sm text-rose-300">{error}</p>}
 
-        <div className="mx-auto mt-8 grid max-w-[760px] gap-3 md:grid-cols-3">
+        <div className="mx-auto mt-8 grid max-w-[700px] gap-3 md:grid-cols-3">
           {[
             ['01','Testing speed','Mobile + desktop performance signals.'],
             ['02','AI explanation','Technical issues in simple client language.'],
