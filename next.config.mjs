@@ -7,6 +7,14 @@ const nextConfig = {
   },
   experimental: {
     serverActions: { bodySizeLimit: '4mb' }
+  },
+  outputFileTracingIncludes: {
+    '/api/demo/pdf': [
+      './node_modules/pdfkit/js/standard-fonts/**/*'
+    ],
+    '/api/report/[id]/pdf': [
+      './node_modules/pdfkit/js/standard-fonts/**/*'
+    ]
   }
 };
 
