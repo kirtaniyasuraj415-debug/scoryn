@@ -36,27 +36,28 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
   const [error,setError]=useState('');
   const router=useRouter();
 
-  async function finish(user:any){
-    const idToken=await user.getIdToken(true);
-    const sessionRes=await fetch('/api/auth/session',{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      credentials:'same-origin',
-      body:JSON.stringify({idToken})
-    });
-    if(!sessionRes.ok){
-      const data=await sessionRes.json().catch(()=>({}));
-      throw new Error(data.error||'Secure sign-in session create nahi hui.');
-    }
-
-    try{
-      await ensureClientWorkspace(user);
-    }catch(e){
-      console.warn('Workspace bootstrap continued in background:',e);
-    }
-
+  function finish(user:any){
+    // Firebase has already authenticated the user at this point. Do not block
+    // navigation on server-session or Firestore bootstrap network calls.
     router.replace('/dashboard');
     router.refresh();
+
+    void (async()=>{
+      try{
+        const idToken=await user.getIdToken();
+        await Promise.allSettled([
+          fetch('/api/auth/session',{
+            method:'POST',
+            headers:{'content-type':'application/json'},
+            credentials:'same-origin',
+            body:JSON.stringify({idToken})
+          }),
+          ensureClientWorkspace(user)
+        ]);
+      }catch(e){
+        console.warn('Background sign-in bootstrap did not finish:',e);
+      }
+    })();
   }
 
   async function submit(e:FormEvent){
@@ -69,10 +70,10 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
       if(mode==='signup'){
         const c=await createUserWithEmailAndPassword(auth,email,password);
         if(name.trim()) await updateProfile(c.user,{displayName:name.trim()});
-        await finish(c.user);
+        finish(c.user);
       }else{
         const c=await signInWithEmailAndPassword(auth,email,password);
-        await finish(c.user);
+        finish(c.user);
       }
     }catch(e){
       setError(friendlyAuthError(e));
@@ -89,7 +90,7 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
       const provider=new GoogleAuthProvider();
       provider.setCustomParameters({prompt:'select_account'});
       const c=await signInWithPopup(auth,provider);
-      await finish(c.user);
+      finish(c.user);
     }catch(e){
       setError(friendlyAuthError(e));
       setBusy(false);
