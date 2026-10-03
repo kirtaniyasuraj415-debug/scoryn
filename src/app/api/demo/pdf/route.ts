@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Font, renderToBuffer } from '@react-pdf/renderer';
 import { ReportPDF } from '@/lib/report/pdf';
+import { decodeGuestPayload } from '@/lib/audit/guest-payload';
 
 const fontFamilies:Record<string,string>={
   HINDI:'Noto Sans Devanagari',
@@ -46,7 +47,7 @@ export async function POST(req:Request){
 
     let payload:any;
     try{
-      payload=JSON.parse(Buffer.from(id,'base64url').toString());
+      payload=decodeGuestPayload<any>(id);
     }catch{
       return NextResponse.json({error:'Invalid report data.'},{status:400});
     }

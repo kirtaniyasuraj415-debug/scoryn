@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { buildDualReports } from '@/lib/audit/reports';
 import { runComprehensiveAudit } from '@/lib/audit/engine';
 import { createDemoAudit } from '@/lib/audit/demo';
+import { encodeGuestPayload } from '@/lib/audit/guest-payload';
 import { normalizeAuditUrl } from '@/lib/audit/url';
 import type { AuditDataset, ReportLanguage } from '@/lib/audit/types';
 import { getServerUser } from '@/lib/auth/session';
@@ -152,7 +153,7 @@ async function makeResponse(input: { url?: unknown; language?: unknown }) {
     }
   }
   const payload = { url, result: guestResult(dataset, reports), language, exp: Date.now() + 60 * 60 * 1000 };
-  const id = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const id = encodeGuestPayload(payload);
   return { id, url, result, language, reportId, authenticated: Boolean(user), storageMode, persistenceAvailable: adminReady };
 }
 

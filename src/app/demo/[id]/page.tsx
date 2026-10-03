@@ -3,12 +3,15 @@ import { notFound } from 'next/navigation';
 import { AlertTriangle, ArrowLeft, Save, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DownloadDemoPdfButton } from '@/components/report/download-demo-pdf-button';
+import { decodeGuestPayload } from '@/lib/audit/guest-payload';
+
+type GuestPayload = { url: string; result: any; language?: string; exp: number };
 
 export default async function DemoPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ mode?: string }> }) {
   const { id } = await params;
   const mode = (await searchParams)?.mode === 'developer' ? 'developer' : 'business';
-  let payload: { url: string; result: any; language?: string; exp: number } | null = null;
-  try { payload = JSON.parse(Buffer.from(id, 'base64url').toString()); } catch { notFound(); }
+  let payload: GuestPayload | null = null;
+  try { payload = decodeGuestPayload<GuestPayload>(id); } catch { notFound(); }
   if (!payload || payload.exp < Date.now()) notFound();
   const r = payload.result;
   const scores = [['Performance', r.performance], ['SEO', r.seo], ['Accessibility', r.accessibility], ['Best Practices', r.bestPractices]];
