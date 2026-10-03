@@ -1,13 +1,8 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { AuthForm } from '@/components/auth/auth-form';
-import { getServerUser } from '@/lib/auth/session';
 import { ScanSearch } from 'lucide-react';
 
-export default async function Login(){
-  const user=await getServerUser();
-  if(user) redirect('/dashboard');
-
+export default function Login(){
   return <main className="grid min-h-screen place-items-center bg-[#070707] px-4">
     <div className="w-full max-w-md rounded-3xl border border-white/[.08] bg-[#0d0d0d] p-7 sm:p-9">
       <Link href="/" className="mb-10 flex items-center gap-2 font-semibold">
