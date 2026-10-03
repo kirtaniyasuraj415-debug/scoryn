@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -36,28 +36,32 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
   const [error,setError]=useState('');
   const router=useRouter();
 
-  function finish(user:any){
-    // Firebase has already authenticated the user at this point. Do not block
-    // navigation on server-session or Firestore bootstrap network calls.
-    router.replace('/dashboard');
-    router.refresh();
+  useEffect(()=>{
+    router.prefetch('/dashboard');
+  },[router]);
 
-    void (async()=>{
-      try{
-        const idToken=await user.getIdToken();
-        await Promise.allSettled([
-          fetch('/api/auth/session',{
-            method:'POST',
-            headers:{'content-type':'application/json'},
-            credentials:'same-origin',
-            body:JSON.stringify({idToken})
-          }),
-          ensureClientWorkspace(user)
-        ]);
-      }catch(e){
-        console.warn('Background sign-in bootstrap did not finish:',e);
-      }
-    })();
+  function finish(user:any){
+    setBusy(false);
+    router.replace('/dashboard');
+
+    window.setTimeout(()=>{
+      void (async()=>{
+        try{
+          const idToken=await user.getIdToken();
+          await Promise.allSettled([
+            fetch('/api/auth/session',{
+              method:'POST',
+              headers:{'content-type':'application/json'},
+              credentials:'same-origin',
+              body:JSON.stringify({idToken})
+            }),
+            ensureClientWorkspace(user)
+          ]);
+        }catch(e){
+          console.warn('Background sign-in bootstrap did not finish:',e);
+        }
+      })();
+    },250);
   }
 
   async function submit(e:FormEvent){
@@ -88,7 +92,6 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
     try{
       const {auth}=getFirebaseClient();
       const provider=new GoogleAuthProvider();
-      provider.setCustomParameters({prompt:'select_account'});
       const c=await signInWithPopup(auth,provider);
       finish(c.user);
     }catch(e){
