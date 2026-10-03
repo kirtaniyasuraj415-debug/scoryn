@@ -1,21 +1,22 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, LockKeyhole, Zap } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Save, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DownloadDemoPdfButton } from '@/components/report/download-demo-pdf-button';
 
-export default async function DemoPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  let payload: { url: string; result: any; exp: number } | null = null;
+export default async function DemoPage({params}:{params:Promise<{id:string}>}){
+  const {id}=await params;
+  let payload:{url:string;result:any;language?:string;exp:number}|null=null;
 
-  try {
-    payload = JSON.parse(Buffer.from(id, 'base64url').toString());
-  } catch {
+  try{
+    payload=JSON.parse(Buffer.from(id,'base64url').toString());
+  }catch{
     notFound();
   }
 
-  if (!payload || payload.exp < Date.now()) notFound();
+  if(!payload||payload.exp<Date.now()) notFound();
 
-  const r = payload.result;
+  const r=payload.result;
   const partial=Boolean(r.partial);
   const scores=[
     ['Performance',r.performance],
@@ -83,13 +84,25 @@ export default async function DemoPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="mt-8 rounded-2xl border border-white/[.08] bg-gradient-to-r from-magenta/10 to-transparent p-6">
-          <div className="flex items-start gap-3">
-            <LockKeyhole className="mt-1 h-5 w-5 text-rose"/>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-lg">Full report + PDF is locked</h3>
-              <p className="mt-2 text-sm text-zinc-500">Create your free account to save audits, add agency branding, generate PDF, and share a client link.</p>
-              <Button asChild variant="accent" className="mt-5">
-                <Link href="/signup"><Zap className="h-4 w-4"/>Unlock free reports</Link>
+              <h3 className="text-lg">Basic PDF download — no login required</h3>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
+                Is audit ka basic Scoryn PDF seedha download karo. Login sirf saved history, custom agency branding, client management aur reusable public reports ke liye chahiye.
+              </p>
+            </div>
+            <DownloadDemoPdfButton reportId={id}/>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/[.06] bg-black/25 p-5">
+          <div className="flex items-start gap-3">
+            <Save className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500"/>
+            <div className="flex-1">
+              <h3 className="text-sm text-zinc-300">Want to save this workflow?</h3>
+              <p className="mt-1 text-xs leading-6 text-zinc-600">Account banane par reports save hongi, branding apply hogi aur dashboard history milegi.</p>
+              <Button asChild variant="accent" className="mt-4">
+                <Link href="/signup"><Zap className="h-4 w-4"/>Create free account</Link>
               </Button>
             </div>
           </div>
