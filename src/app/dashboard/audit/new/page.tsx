@@ -35,12 +35,17 @@ export default function NewAudit(){
       const {auth}=getFirebaseClient();
       const current=auth.currentUser;
       if(current){
-        const idToken=await current.getIdToken();
-        await fetch('/api/auth/session',{
-          method:'POST',
-          headers:{'content-type':'application/json'},
-          body:JSON.stringify({idToken})
-        });
+        try{
+          const idToken=await current.getIdToken();
+          await fetch('/api/auth/session',{
+            method:'POST',
+            headers:{'content-type':'application/json'},
+            credentials:'same-origin',
+            body:JSON.stringify({idToken})
+          });
+        }catch(e){
+          console.warn('Audit session sync skipped:',e);
+        }
       }
 
       const res=await fetch('/api/audit/demo',{
@@ -73,7 +78,7 @@ export default function NewAudit(){
     <div className="hero-grid pointer-events-none absolute inset-0 opacity-[.30]"/>
     <div className="hero-ambient-glow pointer-events-none absolute left-1/2 top-[48%] h-[520px] w-[880px] -translate-x-1/2 rounded-full opacity-55"/>
 
-    <section className="relative mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl items-center px-4 py-12 sm:px-8">
+    <section className="relative mx-auto flex min-h-[calc(100svh-4rem)] max-w-5xl items-center px-4 py-10 sm:px-8 sm:py-12">
       <div className="w-full">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl border border-magenta/20 bg-[#0b090a] shadow-[0_0_34px_rgba(197,29,111,.14)]">
@@ -84,41 +89,40 @@ export default function NewAudit(){
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-600">Website URL paste karo. Scoryn mobile + desktop checks ko start karke client-ready result open karega.</p>
         </div>
 
-        <form onSubmit={submit} className="audit-shell mx-auto mt-9 w-full max-w-[760px] rounded-[22px] p-px">
+        <form onSubmit={submit} className="audit-shell mx-auto mt-8 w-full max-w-[760px] rounded-[22px] p-px">
           <div className="relative overflow-hidden rounded-[21px] bg-[#050505] p-3.5 sm:p-4">
-            <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="min-w-0 flex-1">
-                <input
-                  value={url}
-                  onChange={e=>setUrl(e.target.value)}
-                  placeholder="https://clientwebsite.com"
-                  className="h-12 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-14 sm:text-base"
-                />
-                <div className="flex flex-wrap items-center gap-2 px-2 pb-1 text-[10px] text-zinc-700">
-                  <Globe2 className="h-3.5 w-3.5"/>Mobile + desktop
-                  <span>•</span>
-                  <Sparkles className="h-3.5 w-3.5"/>AI-ready report
-                </div>
-                <div className="mt-2 px-2">
-                  <select
-                    value={language}
-                    onChange={e=>setLanguage(e.target.value)}
-                    className="h-9 rounded-xl border border-white/[.06] bg-[#090909] px-3 text-xs text-zinc-400 outline-none focus:border-magenta/20"
-                  >
-                    <option value="ENGLISH">English</option>
-                    <option value="HINGLISH">Hinglish</option>
-                    <option value="HINDI">हिन्दी</option>
-                    <option value="BENGALI">বাংলা</option>
-                    <option value="MARATHI">मराठी</option>
-                    <option value="GUJARATI">ગુજરાતી</option>
-                    <option value="TAMIL">தமிழ்</option>
-                    <option value="TELUGU">తెలుగు</option>
-                  </select>
-                </div>
-              </div>
-              <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold disabled:opacity-40">
+            <input
+              value={url}
+              onChange={e=>setUrl(e.target.value)}
+              placeholder="https://clientwebsite.com"
+              className="h-12 w-full bg-transparent px-2 text-[15px] text-white outline-none placeholder:text-zinc-700 sm:h-14 sm:text-base"
+            />
+
+            <div className="flex flex-wrap items-center gap-2 px-2 pb-2 text-[10px] text-zinc-700">
+              <Globe2 className="h-3.5 w-3.5"/>Mobile + desktop
+              <span>•</span>
+              <Sparkles className="h-3.5 w-3.5"/>AI-ready report
+            </div>
+
+            <div className="mt-1 flex items-center gap-2 px-1">
+              <select
+                value={language}
+                onChange={e=>setLanguage(e.target.value)}
+                className="h-11 min-w-0 flex-1 rounded-full border border-white/[.07] bg-[#090909] px-4 text-xs text-zinc-300 outline-none transition focus:border-magenta/25 sm:max-w-[190px]"
+              >
+                <option value="ENGLISH">English</option>
+                <option value="HINGLISH">Hinglish</option>
+                <option value="HINDI">हिन्दी</option>
+                <option value="BENGALI">বাংলা</option>
+                <option value="MARATHI">मराठी</option>
+                <option value="GUJARATI">ગુજરાતી</option>
+                <option value="TAMIL">தமிழ்</option>
+                <option value="TELUGU">తెలుగు</option>
+              </select>
+
+              <button disabled={!url.trim()||busy} className="glow-action inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold disabled:opacity-40 sm:ml-auto sm:px-6 sm:text-sm">
                 {busy?<LoaderCircle className="h-4 w-4 animate-spin"/>:<FileSearch className="h-4 w-4"/>}
-                Run audit
+                <span>{busy?'Auditing…':'Run audit'}</span>
                 {!busy&&<ArrowUpRight className="h-4 w-4"/>}
               </button>
             </div>
