@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getFirebaseAdmin } from '@/lib/firebase/admin';
+import { getFirebaseAdmin, isFirebaseAdminConfigured } from '@/lib/firebase/admin';
 import { ID_TOKEN_SESSION_PREFIX, SESSION_COOKIE } from '@/lib/auth/session';
 import { verifyFirebaseIdToken } from '@/lib/auth/verify-id-token';
 
@@ -23,16 +23,15 @@ export async function POST(req:Request){
     let maxAge=ID_TOKEN_FALLBACK_SECONDS;
     let mode:'firebase-session'|'id-token-fallback'='id-token-fallback';
 
-    try{
-      const {auth}=getFirebaseAdmin();
-      cookieValue=await auth.createSessionCookie(idToken,{expiresIn:FIVE_DAYS*1000});
-      maxAge=FIVE_DAYS;
-      mode='firebase-session';
-    }catch(e){
-      // A verified Firebase ID token is safe to use as a short-lived httpOnly
-      // fallback. This prevents a valid client login from failing just because
-      // Firebase Admin cannot mint a long-lived session cookie.
-      console.warn('[Scoryn auth] Long-lived session cookie unavailable; using verified short session.',e);
+    if(isFirebaseAdminConfigured()){
+      try{
+        const {auth}=getFirebaseAdmin();
+        cookieValue=await auth.createSessionCookie(idToken,{expiresIn:FIVE_DAYS*1000});
+        maxAge=FIVE_DAYS;
+        mode='firebase-session';
+      }catch(e){
+        console.warn('[Scoryn auth] Long-lived session unavailable; using verified short session.',e);
+      }
     }
 
     const res=NextResponse.json({ok:true,mode});
