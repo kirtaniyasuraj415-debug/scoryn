@@ -3,7 +3,7 @@ import { normalizeAuditUrl } from '@/lib/audit/url';
 import { createDemoAudit } from '@/lib/audit/demo';
 import { getServerUser } from '@/lib/auth/session';
 import { getDefaultWorkspaceId } from '@/lib/auth/workspace';
-import { getFirebaseAdmin } from '@/lib/firebase/admin';
+import { getFirebaseAdmin, isFirebaseAdminConfigured } from '@/lib/firebase/admin';
 import { explainAuditIssues, isReportLanguage, type ReportLanguage } from '@/lib/audit/explain';
 import { PLANS } from '@/lib/plans';
 import { randomUUID } from 'crypto';
@@ -121,7 +121,6 @@ function clampScore(value:number){
 }
 
 function createStaticFallback(url:string,html:string,meta:{resolvedUrl:string;responseMs:number;status:number},upstreamErrors:string[]){
-  const lower=html.toLowerCase();
   const title=/<title[^>]*>\s*[^<]{2,}\s*<\/title>/i.test(html);
   const description=/<meta[^>]+name=["']description["'][^>]+content=["'][^"']{20,}["']/i.test(html)
     || /<meta[^>]+content=["'][^"']{20,}["'][^>]+name=["']description["']/i.test(html);
@@ -377,12 +376,13 @@ async function makeResponse(input:{url?:unknown;language?:unknown}){
   const url=normalizeAuditUrl(String(input.url??''));
   const demo=process.env.DEMO_AUDIT_MODE==='true';
   const user=await getServerUser();
+  const adminReady=isFirebaseAdminConfigured();
 
   let language:ReportLanguage='ENGLISH';
 
   if(isReportLanguage(input.language)){
     language=input.language;
-  }else if(user){
+  }else if(user&&adminReady){
     try{
       const {db}=getFirebaseAdmin();
       const workspaceId=await getDefaultWorkspaceId(user.uid);
@@ -393,15 +393,24 @@ async function makeResponse(input:{url?:unknown;language?:unknown}){
     }catch{
       language='HINGLISH';
     }
+  }else if(user){
+    language='HINGLISH';
   }
 
   let result:any=demo ? createDemoAudit(url) : await createRealAudit(url);
   let reportId:string|null=null;
+  let persisted=false;
 
-  if(user){
-    const saved=await saveAuthenticatedReport(user,url,result,language);
-    result=saved.result;
-    reportId=saved.reportId;
+  if(user&&adminReady){
+    try{
+      const saved=await saveAuthenticatedReport(user,url,result,language);
+      result=saved.result;
+      reportId=saved.reportId;
+      persisted=true;
+    }catch(e){
+      console.warn('[Scoryn Audit] Report persistence skipped; returning completed audit.',e);
+      result={...result,issues:await explainAuditIssues(Array.isArray(result.issues)?result.issues:[],language)};
+    }
   }else{
     result={...result,issues:await explainAuditIssues(Array.isArray(result.issues)?result.issues:[],language)};
   }
@@ -415,7 +424,8 @@ async function makeResponse(input:{url?:unknown;language?:unknown}){
     result,
     language,
     reportId,
-    authenticated:Boolean(user)
+    authenticated:Boolean(user),
+    persisted
   };
 }
 
