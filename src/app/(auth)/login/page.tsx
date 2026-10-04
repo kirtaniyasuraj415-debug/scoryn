@@ -12,7 +12,7 @@ export default function Login(){
       <h1 className="text-3xl font-medium">Welcome back</h1>
       <p className="mt-2 text-sm text-zinc-500">Your audits, clients and reports are waiting.</p>
       <div className="mt-8"><AuthForm mode="login"/></div>
-      <p className="mt-6 text-center text-sm text-zinc-500">No account? <Link className="text-white" href="/signup">Start free</Link></p>
+      <p className="mt-6 text-center text-sm text-zinc-500">No account? <a className="text-white" href="/signup">Start free</a></p>
     </div>
   </main>;
 }

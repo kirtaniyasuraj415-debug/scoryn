@@ -40,11 +40,13 @@ export function AuthForm({mode}:{mode:'login'|'signup'}){
   useEffect(()=>{
     router.prefetch('/dashboard');
     const {auth}=getFirebaseClient();
+    // Subscribe once. Re-subscribing whenever the submit state changes can
+    // replay a cached Firebase user and make the auth form disappear mid-flow.
     const unsubscribe=onAuthStateChanged(auth,current=>{
-      if(current&&!busy) router.replace('/dashboard');
+      if(current) router.replace('/dashboard');
     });
     return unsubscribe;
-  },[router,busy]);
+  },[router]);
 
   function finish(user:any){
     setBusy(false);

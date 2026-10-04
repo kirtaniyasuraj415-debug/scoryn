@@ -16,8 +16,8 @@ export function Navbar() {
     </div>
 
     <div className="flex items-center gap-1.5 sm:gap-2">
-      <Button asChild variant="ghost" size="sm"><Link href="/login">Log in</Link></Button>
-      <Button asChild size="sm"><Link href="/signup">Start free</Link></Button>
+      <Button asChild variant="ghost" size="sm"><a href="/login">Log in</a></Button>
+      <Button asChild size="sm"><a href="/signup">Start free</a></Button>
     </div>
   </nav>;
 }

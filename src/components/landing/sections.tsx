@@ -277,7 +277,7 @@ export function ReportPreviewSection() {
               'Agency-branded CTA and contact details'
             ].map(x => <div key={x} className="flex items-center gap-3 text-sm text-zinc-300"><CheckCircle2 className="h-4 w-4 text-rose" />{x}</div>)}
           </div>
-          <Button asChild variant="accent" className="mt-9"><Link href="/signup">Create your first report <ArrowRight className="h-4 w-4" /></Link></Button>
+          <Button asChild variant="accent" className="mt-9"><a href="/signup">Create your first report <ArrowRight className="h-4 w-4" /></a></Button>
         </div>
 
         <div className="reference-card card-grid rounded-[30px] p-4 sm:p-8">
@@ -405,7 +405,7 @@ export function PricingSection() {
           <p className="mt-1 text-sm text-zinc-500">{p.sub}</p>
           <div className="my-8 glow-divider" />
           <div className="space-y-3">{p.items.map(i => <div key={i} className="flex items-center gap-2 text-sm text-zinc-300"><CheckCircle2 className="h-4 w-4 text-rose" />{i}</div>)}</div>
-          <Button asChild variant={p.hot ? 'accent' : 'outline'} className="mt-9 w-full"><Link href="/signup">{p.cta}</Link></Button>
+          <Button asChild variant={p.hot ? 'accent' : 'outline'} className="mt-9 w-full"><a href="/signup">{p.cta}</a></Button>
         </div>)}
       </div>
     </div>
@@ -444,7 +444,7 @@ export function FinalCTASection() {
         <h2 className="mx-auto mt-5 max-w-4xl font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl lg:text-6xl">Paste a client URL. Leave with a report you can actually sell from.</h2>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500 sm:text-base">Start with 3 free reports and see whether Scoryn fits your outreach workflow.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button asChild variant="accent" size="lg"><Link href="/signup">Start free <ArrowRight className="h-4 w-4" /></Link></Button>
+          <Button asChild variant="accent" size="lg"><a href="/signup">Start free <ArrowRight className="h-4 w-4" /></a></Button>
           <Button asChild variant="outline" size="lg"><Link href="/#pricing">View pricing</Link></Button>
         </div>
       </div>
@@ -460,7 +460,7 @@ export function Footer() {
         <p className="mt-2 max-w-md text-xs leading-5 text-zinc-600">Branded website audits for freelancers and agencies.</p>
       </div>
       <div className="flex flex-wrap gap-5 text-zinc-500"><a href="#features">Features</a><a href="#how">Workflow</a><a href="#pricing">Pricing</a></div>
-      <div className="flex flex-wrap gap-5 text-zinc-600"><Link href="/login">Login</Link><Link href="/signup">Signup</Link><span className="inline-flex items-center gap-1"><Link2 className="h-3 w-3" />Socials</span></div>
+      <div className="flex flex-wrap gap-5 text-zinc-600"><a href="/login">Login</a><a href="/signup">Signup</a><span className="inline-flex items-center gap-1"><Link2 className="h-3 w-3" />Socials</span></div>
     </div>
   </footer>;
 }

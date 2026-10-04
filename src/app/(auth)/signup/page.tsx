@@ -12,7 +12,7 @@ export default function Signup(){
       <h1 className="text-3xl font-medium">Create your workspace</h1>
       <p className="mt-2 text-sm text-zinc-500">3 free reports. Card details ki zarurat nahi.</p>
       <div className="mt-8"><AuthForm mode="signup"/></div>
-      <p className="mt-6 text-center text-sm text-zinc-500">Already registered? <Link className="text-white" href="/login">Log in</Link></p>
+      <p className="mt-6 text-center text-sm text-zinc-500">Already registered? <a className="text-white" href="/login">Log in</a></p>
     </div>
   </main>;
 }
