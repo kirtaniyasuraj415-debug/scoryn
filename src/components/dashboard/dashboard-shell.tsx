@@ -213,7 +213,13 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
         mobile?"h-[72px] px-4":"h-16 px-3"
       )}>
         <ScorynMark size={mobile?40:34}/>
-        {!compact&&<div className="min-w-0 flex-1"><div className={cn("font-heading text-zinc-100",mobile?"text-base":"text-sm")}>Scoryn</div><div className={cn("mt-0.5 text-zinc-700",mobile?"text-[10px]":"text-[9px]")}>AI Website Audit</div></div>}
+        {!compact&&<div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div className={cn("font-heading text-zinc-100",mobile?"text-base":"text-sm")}>Scoryn</div>
+            <span className="inline-flex shrink-0 rounded-full border border-magenta/25 bg-magenta/[.07] px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-[.15em] text-rose">Beta</span>
+          </div>
+          <div className={cn("mt-0.5 text-zinc-700",mobile?"text-[10px]":"text-[9px]")}>AI Website Audit</div>
+        </div>}
         {mobile
           ? <button onClick={()=>setMobileOpen(false)} aria-label="Close navigation" className="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/[.06] bg-white/[.015] text-zinc-500 transition hover:border-magenta/20 hover:bg-magenta/[.04] hover:text-rose"><X className="h-4 w-4"/></button>
           : <button onClick={toggleCollapsed} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-zinc-700 transition hover:bg-magenta/[.05] hover:text-rose md:grid">
@@ -269,7 +275,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     <div className="fixed inset-y-0 left-0 z-40 hidden md:block"><SidebarPanel/></div>
 
     <div className={cn(
-      'fixed inset-0 top-9 z-[70] md:hidden',
+      'fixed inset-0 top-0 z-[70] md:hidden',
       mobileOpen?'pointer-events-auto':'pointer-events-none'
     )} aria-hidden={!mobileOpen}>
       <button
@@ -290,13 +296,18 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </div>
 
     <header className={cn(
-      'fixed left-0 right-0 top-9 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/94 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
+      'fixed left-0 right-0 top-0 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/94 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
       collapsed?'md:pl-[88px]':'md:pl-[240px]'
     )}>
       <button onClick={()=>setMobileOpen(true)} className={cn(
         'mr-2 grid h-9 w-9 place-items-center rounded-lg text-zinc-500 transition hover:bg-white/[.03] hover:text-rose md:hidden',
         mobileOpen&&'pointer-events-none opacity-0'
       )}><Menu className="h-5 w-5"/></button>
+
+      <div className="flex items-center gap-2 sm:hidden">
+        <span className="font-heading text-sm text-zinc-100">Scoryn</span>
+        <span className="inline-flex rounded-full border border-magenta/25 bg-magenta/[.07] px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-[.15em] text-rose">Beta</span>
+      </div>
 
       <div className="hidden items-center gap-2 text-xs text-zinc-700 sm:flex"><span>Home</span><span>/</span><span className="text-zinc-400">{pageTitle}</span></div>
 
@@ -324,7 +335,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </header>
 
     <main className={cn(
-      'relative z-10 min-h-screen pt-[100px] transition-[padding] duration-300',
+      'relative z-10 min-h-screen pt-16 transition-[padding] duration-300',
       collapsed?'md:pl-[72px]':'md:pl-[224px]'
     )}>
       {children}
