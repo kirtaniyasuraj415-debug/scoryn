@@ -1,45 +1,219 @@
 # Scoryn
 
-Scoryn is a Firebase-backed SaaS for branded website audit reports.
+**Scoryn is a branded website-audit platform for developers, freelancers, and agencies.**
 
-## Stack
-- Next.js App Router + TypeScript
-- Tailwind CSS + shadcn-style components
-- Firebase Auth, Firestore, Storage, Cloud Functions
-- Google PageSpeed Insights API
-- NVIDIA API for issue explanations, with deterministic fallback templates
-- @react-pdf/renderer for branded PDF
-- Razorpay test-mode integration hooks
+It turns a public website URL into a normalized audit dataset and reusable client reports. The same audit data powers the business-owner report, developer report, public share page, and audit history, so the site is not unnecessarily scanned twice for different report views.
 
-## Audit architecture
+> **Project status:** Early-stage product / active development.
 
-Every audit produces one normalized dataset. The Business Owner and Developer
-reports, both PDFs, the public share page and history all read that same data;
-the site is never scanned twice for the two report modes.
+## What Scoryn does
 
-The Vercel path uses PageSpeed/Lighthouse as the performance source and adds
-bounded sitemap/internal-link discovery, HTML SEO/accessibility checks, broken
-link checks and Web Check-compatible HTTPS, redirect, security-header, robots,
-sitemap and cookie signals. Values that a scanner cannot verify remain null or
-"Not reported".
+Scoryn is designed to make technical website audits easier to run, explain, brand, and share with clients.
 
-Browser-heavy multi-page scans are available through
-`.github/workflows/scoryn-audit-worker.yml`. When `AUDIT_WORKER_MODE=github-actions`
-and a GitHub token is configured, `/api/audit/start` dispatches that worker; if
-dispatch fails, it creates a Firebase-worker fallback job. The worker uses
-Unlighthouse 0.19.x (MIT) for crawling/Lighthouse reports and axe-core 4.13
-(MPL-2.0) through Playwright for WCAG findings. Web Check is MIT licensed but is
-not published as a reusable npm package, so Scoryn uses a small adapter for its
-relevant HTTP/configuration signals rather than copying its UI.
+Core workflow:
 
-## Local setup
-1. Copy `.env.example` to `.env.local` and add Firebase web + Admin credentials.
-2. `npm install`
-3. `npm run dev`
-4. For a complete test without PageSpeed/NVIDIA keys, set `DEMO_AUDIT_MODE=true` both in Next.js env and Firebase Functions parameter configuration.
-5. Install dependencies under `functions/` and deploy Firebase Functions when the Firebase project is ready.
+1. Enter a public website URL.
+2. Collect performance and technical website signals.
+3. Normalize the findings into one audit dataset.
+4. Explain issues with AI when the AI provider is available.
+5. Generate client-facing and developer-facing reports.
+6. Export a branded PDF and/or share a public report.
+7. Keep audit history and workspace/client data in Firebase.
 
-## Firebase collections
-`users`, `workspaces`, `workspaceMembers`, `branding`, `clients`, `audits`, `auditJobs`, `auditRuns`, `auditIssues`, `usage`.
+## Audit coverage
 
-The app does not invent business-impact percentages. AI output is explicitly instructed to avoid unsupported statistics, and template fallbacks are used if NVIDIA is unavailable.
+The Vercel audit path combines several sources of website signals:
+
+- Google PageSpeed Insights / Lighthouse performance data
+- Mobile and desktop performance analysis
+- Bounded sitemap and internal-link discovery
+- HTML SEO and accessibility checks
+- Broken-link checks
+- HTTPS and redirect signals
+- Security-header signals
+- robots.txt and sitemap signals
+- Cookie/configuration signals
+
+For signals that cannot be reliably verified, Scoryn keeps the value unavailable instead of inventing a result.
+
+### Browser-heavy audits
+
+Scoryn also includes an optional GitHub Actions browser-audit worker for deeper multi-page scanning.
+
+The worker uses:
+
+- Unlighthouse 0.19.x for crawling/Lighthouse reports
+- Playwright + axe-core 4.13 for accessibility/WCAG findings
+
+The worker is optional. The Vercel path has a Firebase-worker fallback when the GitHub Actions dispatch is unavailable.
+
+## AI analysis
+
+Scoryn currently uses the NVIDIA API for AI-powered issue explanations, with deterministic template fallbacks when AI is unavailable.
+
+The AI layer is designed to:
+
+- explain technical findings in understandable language
+- connect findings to practical business impact without inventing unsupported statistics
+- provide actionable recommendations
+
+Scoryn does **not** claim that AI-generated business-impact percentages are measured facts. Unsupported statistics are deliberately avoided.
+
+## Reports and sharing
+
+Scoryn uses the same normalized audit dataset across:
+
+- Business Owner reports
+- Developer reports
+- Public share pages
+- Audit history
+
+Branded PDF reports are generated with `@react-pdf/renderer`.
+
+## Data and backend
+
+Scoryn uses Firebase for application data and authentication.
+
+Main collections include:
+
+- `users`
+- `workspaces`
+- `workspaceMembers`
+- `branding`
+- `clients`
+- `audits`
+- `auditJobs`
+- `auditRuns`
+- `auditIssues`
+- `usage`
+
+## Tech stack
+
+- **Next.js 15** + App Router
+- **React 19** + TypeScript
+- **Tailwind CSS**
+- **Firebase Authentication**
+- **Cloud Firestore**
+- **Firebase Storage**
+- **Firebase Cloud Functions**
+- **Google PageSpeed Insights API**
+- **NVIDIA API** for AI explanations
+- **Playwright + axe-core** for browser-based accessibility auditing
+- **Unlighthouse** for optional crawling/Lighthouse worker
+- **@react-pdf/renderer** for PDF reports
+- **Razorpay** integration hooks (test mode)
+
+## Local development
+
+### Requirements
+
+- Node.js
+- npm
+- A Firebase project for full application functionality
+
+### Setup
+
+```bash
+git clone https://github.com/kirtaniyasuraj415-debug/scoryn.git
+cd scoryn
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Then open the local Next.js development server.
+
+### Environment variables
+
+See `.env.example` for the complete configuration.
+
+The project supports:
+
+- Firebase Web SDK credentials
+- Firebase Admin credentials
+- PageSpeed API key
+- NVIDIA API credentials
+- Razorpay test-mode credentials
+- Optional GitHub Actions audit-worker configuration
+
+**Never commit real API keys, Firebase private keys, service-account JSON, or payment secrets.**
+
+### Demo mode
+
+For local/full-flow testing before real external API credentials are available:
+
+```env
+DEMO_AUDIT_MODE=true
+```
+
+Configure this for both the Next.js environment and Firebase Functions parameter configuration where required.
+
+## Architecture
+
+At a high level:
+
+```text
+Public website URL
+       |
+       v
+Scoryn audit pipeline
+       |
+       +--> PageSpeed / Lighthouse
+       +--> SEO & accessibility checks
+       +--> Link / HTTP / configuration checks
+       +--> Optional browser-heavy worker
+       |
+       v
+Normalized audit dataset
+       |
+       +--> AI explanations
+       +--> Business Owner report
+       +--> Developer report
+       +--> Public share page
+       +--> Branded PDF
+       +--> Audit history
+```
+
+## Why the normalized dataset matters
+
+A key architectural rule in Scoryn is that an audit produces **one normalized dataset**.
+
+Different report types and views consume that same dataset. This avoids running the same website scan again just because the user wants a different report format.
+
+## Repository status
+
+This repository is currently maintained as a private development repository. Production configuration and external service credentials are intentionally environment-specific and must not be committed.
+
+Before making the repository public, review:
+
+- Firebase security rules
+- environment variables
+- GitHub Actions secrets
+- authentication configuration
+- payment configuration
+- private service endpoints
+- dependency and third-party license requirements
+
+If the project is eventually published as open source, add an explicit open-source license before describing it as an open-source project.
+
+## Roadmap
+
+Scoryn is under active development. Planned work may include:
+
+- deeper audit coverage
+- stronger multi-page crawling
+- richer client reporting
+- additional AI providers
+- improved workspace/client workflows
+- production billing
+- additional integrations
+
+The roadmap may change as the product is tested and developed.
+
+## Live demo
+
+**https://scoryn-eight.vercel.app**
+
+---
+
+Built as an independent developer project by **Suraj Kirtaniya**.
