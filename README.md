@@ -1,14 +1,14 @@
 # Scoryn
 
-**Scoryn is a branded website-audit platform for developers, freelancers, and agencies.**
+**Scoryn is an AI-powered website audit and reporting platform for agencies, freelancers, developers, and business teams.**
 
 It turns a public website URL into a normalized audit dataset and reusable client reports. The same audit data powers the business-owner report, developer report, public share page, and audit history, so the site is not unnecessarily scanned twice for different report views.
 
-> **Project status:** Early-stage product / active development.
+> **Project status:** Live beta — actively tested and improved with real audit workflows.
 
 ## What Scoryn does
 
-Scoryn is designed to make technical website audits easier to run, explain, brand, and share with clients.
+Scoryn turns technical website signals into clear, actionable, client-ready reports. It is built for teams that need to audit websites, explain what matters to the business, apply their own branding, and share professional deliverables without repeating the same scan.
 
 Core workflow:
 
@@ -202,7 +202,7 @@ Contributions are welcome. See `CONTRIBUTING.md` for development and pull-reques
 
 ## Roadmap
 
-Scoryn is under active development. Planned work may include:
+Scoryn is in live beta. Planned work may include:
 
 - deeper audit coverage
 - stronger multi-page crawling
