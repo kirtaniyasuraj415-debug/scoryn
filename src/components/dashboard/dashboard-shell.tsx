@@ -8,6 +8,7 @@ import {
   BarChart3,
   ChevronDown,
   CreditCard,
+  Bug,
   FileSearch,
   Files,
   LayoutDashboard,
@@ -40,7 +41,8 @@ const workspaceNav=[
 const manageNav=[
   ['/dashboard/clients',Users,'Clients'],
   ['/dashboard/settings',Palette,'Branding'],
-  ['/dashboard/billing',CreditCard,'Billing']
+  ['/dashboard/billing',CreditCard,'Billing'],
+  ['/feedback',Bug,'Report a Bug']
 ] as const;
 
 type RecentChat={id:string;title:string;updatedAt:number};
@@ -267,7 +269,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     <div className="fixed inset-y-0 left-0 z-40 hidden md:block"><SidebarPanel/></div>
 
     <div className={cn(
-      'fixed inset-0 z-[70] md:hidden',
+      'fixed inset-0 top-9 z-[70] md:hidden',
       mobileOpen?'pointer-events-auto':'pointer-events-none'
     )} aria-hidden={!mobileOpen}>
       <button
@@ -288,7 +290,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </div>
 
     <header className={cn(
-      'fixed left-0 right-0 top-0 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/94 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
+      'fixed left-0 right-0 top-9 z-30 flex h-16 items-center border-b border-white/[.05] bg-[#080809]/94 px-3 backdrop-blur-xl transition-[padding] duration-300 sm:px-5',
       collapsed?'md:pl-[88px]':'md:pl-[240px]'
     )}>
       <button onClick={()=>setMobileOpen(true)} className={cn(
@@ -322,7 +324,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </header>
 
     <main className={cn(
-      'relative z-10 min-h-screen pt-16 transition-[padding] duration-300',
+      'relative z-10 min-h-screen pt-[100px] transition-[padding] duration-300',
       collapsed?'md:pl-[72px]':'md:pl-[224px]'
     )}>
       {children}
