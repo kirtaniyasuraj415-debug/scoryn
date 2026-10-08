@@ -7,6 +7,23 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 
 const site = process.env.SCORYN_SITE;
+
+function isPrivateIpv4(host) {
+  const p=host.split('.').map(Number);
+  if(p.length!==4||p.some(n=>!Number.isInteger(n)||n<0||n>255)) return false;
+  const [a,b]=p;
+  return a===0||a===10||a===127||(a===100&&b>=64&&b<=127)||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&(b===0||b===168))||(a===198&&(b===18||b===19));
+}
+function assertSafeSite(value) {
+  let parsed;
+  try { parsed=new URL(value); } catch { throw new Error('Invalid audit URL.'); }
+  if(!['http:','https:'].includes(parsed.protocol)) throw new Error('Only http/https audit URLs are allowed.');
+  const host=parsed.hostname.toLowerCase().replace(/^\[|\]$/g,'');
+  if(!host||host==='localhost'||host.endsWith('.localhost')||host.endsWith('.local')||host.endsWith('.internal')||host.endsWith('.home.arpa')||isPrivateIpv4(host)||host==='::1'||host==='::'||host.startsWith('fc')||host.startsWith('fd')||/^fe[89ab]/.test(host)||/^\\d+$/.test(host)) throw new Error('Private/local network URLs are not allowed.');
+  parsed.hash='';
+  return parsed.toString();
+}
+const safeSite = site ? assertSafeSite(site) : null;
 const auditId = process.env.SCORYN_AUDIT_ID;
 const jobId = process.env.SCORYN_JOB_ID || auditId;
 if (!site) throw new Error('SCORYN_SITE is required.');
@@ -46,7 +63,7 @@ async function runUnlighthouse() {
   await updateAudit({ status: 'RUNNING', currentStep: 'UNLIGHTHOUSE_CRAWL', progress: 22 });
   await rm(outputDir, { recursive: true, force: true });
   await mkdir(outputDir, { recursive: true });
-  await runCommand('npx', ['--no-install', 'unlighthouse-ci', '--site', site, '--reporter', 'jsonExpanded', '--output-path', outputDir, '--no-cache']);
+  await runCommand('npx', ['--no-install', 'unlighthouse-ci', '--site', safeSite, '--reporter', 'jsonExpanded', '--output-path', outputDir, '--no-cache']);
   const report = JSON.parse(await readFile(join(outputDir, 'ci-result.json'), 'utf8'));
   return report;
 }
@@ -89,15 +106,15 @@ async function runWebCheck(url) {
 async function main() {
   await updateAudit({ status: 'RUNNING', currentStep: 'DISCOVERING_PAGES', progress: 8, worker: 'github-actions' });
   const unlighthouse = await runUnlighthouse();
-  const routes = Array.isArray(unlighthouse?.routes) ? unlighthouse.routes.map((route) => new URL(route.path, site).toString()) : [site];
+  const routes = Array.isArray(unlighthouse?.routes) ? unlighthouse.routes.map((route) => new URL(route.path, safeSite).toString()) : [site];
   const axe = await runAxe([...new Set(routes)]);
-  const webCheck = await runWebCheck(site);
+  const webCheck = await runWebCheck(safeSite);
   await updateAudit({ currentStep: 'BUILDING_REPORT', progress: 88 });
-  const normalized = { requestedUrl: site, resolvedUrl: webCheck.finalUrl, testedAt: new Date().toISOString(), pages: unlighthouse.routes || [], scores: unlighthouse.summary || null, findings: [...axe], engines: { unlighthouse: 'worker', axeCore: 'worker', webCheck: 'complete', pageSpeed: 'complete', htmlChecks: 'worker' }, infrastructure: webCheck, ranking: { searchConsoleConnected: false, actualGoogleRankingAvailable: false, note: 'Technical SEO checks do not confirm actual Google search ranking.' } };
+  const normalized = { requestedUrl: safeSite, resolvedUrl: webCheck.finalUrl, testedAt: new Date().toISOString(), pages: unlighthouse.routes || [], scores: unlighthouse.summary || null, findings: [...axe], engines: { unlighthouse: 'worker', axeCore: 'worker', webCheck: 'complete', pageSpeed: 'complete', htmlChecks: 'worker' }, infrastructure: webCheck, ranking: { searchConsoleConnected: false, actualGoogleRankingAvailable: false, note: 'Technical SEO checks do not confirm actual Google search ranking.' } };
   const db = firebaseDb();
   if (db && auditId) await db.collection('audits').doc(auditId).set({ rawAuditData: normalized, engineStatus: normalized.engines, status: 'COMPLETED', currentStep: 'COMPLETE', progress: 100, completedAt: now(), updatedAt: now() }, { merge: true });
   await writeFile(join(outputDir, 'scoryn-normalized-audit.json'), JSON.stringify(normalized, null, 2));
-  console.log(JSON.stringify({ auditId, jobId, site, pages: routes.length, axeFindings: axe.length }));
+  console.log(JSON.stringify({ auditId, jobId, site: safeSite, pages: routes.length, axeFindings: axe.length }));
 }
 
 main().catch(async (error) => { await updateAudit({ status: 'FAILED', currentStep: 'FAILED', progress: 100, errorMessage: error instanceof Error ? error.message : 'Worker failed' }); console.error(error); process.exitCode = 1; });
