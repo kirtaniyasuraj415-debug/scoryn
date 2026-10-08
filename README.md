@@ -182,19 +182,23 @@ Different report types and views consume that same dataset. This avoids running 
 
 ## Repository status
 
-This repository is currently maintained as a private development repository. Production configuration and external service credentials are intentionally environment-specific and must not be committed.
+Scoryn's source repository is public and intended for developer inspection, learning, experimentation, and contribution. Production configuration and external service credentials remain environment-specific and must never be committed.
 
-Before making the repository public, review:
+Before running your own deployment, review:
 
 - Firebase security rules
-- environment variables
+- environment variables and secret storage
 - GitHub Actions secrets
 - authentication configuration
 - payment configuration
 - private service endpoints
 - dependency and third-party license requirements
 
-If the project is eventually published as open source, add an explicit open-source license before describing it as an open-source project.
+The repository includes an MIT license. The license applies to Scoryn's project code; third-party dependencies and services remain subject to their own licenses and terms.
+
+## Contributing and security
+
+Contributions are welcome. See `CONTRIBUTING.md` for development and pull-request guidance. Security issues should be reported privately according to `SECURITY.md` rather than posted publicly.
 
 ## Roadmap
 
