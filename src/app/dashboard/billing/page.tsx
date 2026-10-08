@@ -10,20 +10,21 @@ const plans=[
 
 export default function Billing(){
   return <div className="mx-auto min-h-[calc(100svh-4rem)] max-w-6xl px-4 py-10 pb-20 sm:px-8 lg:py-14">
-    <p className="text-[10px] uppercase tracking-[.24em] text-amber-300/80">Beta billing</p>
+    <p className="text-[10px] uppercase tracking-[.24em] text-rose">Plans & billing</p>
     <h1 className="mt-2 font-heading text-3xl font-bold tracking-[-.035em] sm:text-4xl">Plan & usage</h1>
-    <div className="mt-4 rounded-2xl border border-amber-400/15 bg-amber-400/[.04] p-4 text-sm leading-6 text-zinc-400">
-      <span className="font-semibold text-amber-300">Payments are currently in beta.</span> Plans and limits are visible for product testing, but paid upgrades remain disabled until production billing is fully configured and verified.
+
+    <div className="mt-4 rounded-2xl border border-magenta/15 bg-magenta/[.035] p-4 text-sm leading-6 text-zinc-400">
+      <span className="font-semibold text-rose">Paid upgrades are not enabled yet.</span> This page shows the current plan structure while production billing is being completed and verified.
     </div>
 
     <div className="mt-8 grid gap-3 lg:grid-cols-3">
       {plans.map(([name,price,sub,items],i)=><div key={name} className="reference-card rounded-[24px] p-6">
-        <div className="flex items-center justify-between"><h2 className="font-heading text-xl font-bold">{name}</h2>{i===0&&<span className="rounded-full border border-white/[.08] bg-white/[.03] px-2.5 py-1 text-[9px] text-zinc-400">Current</span>}</div>
+        <div className="flex items-center justify-between"><h2 className="font-heading text-xl font-bold">{name}</h2>{i===0&&<span className="rounded-full border border-magenta/20 bg-magenta/[.06] px-2.5 py-1 text-[9px] text-rose">Current</span>}</div>
         <div className="mt-8 font-heading text-4xl font-bold">{price}</div>
         <div className="mt-1 text-xs text-zinc-600">{sub}</div>
         <div className="my-6 h-px bg-white/[.05]"/>
         <div className="space-y-3">{items.map(x=><div key={x} className="flex items-center gap-2 text-sm text-zinc-400"><CheckCircle2 className="h-4 w-4 text-rose"/>{x}</div>)}</div>
-        <button disabled className="mt-8 h-10 w-full cursor-not-allowed rounded-full border border-white/[.06] bg-white/[.015] text-xs text-zinc-600">{i===0?'Current plan':'Payments coming soon'}</button>
+        <button disabled className="mt-8 h-10 w-full cursor-not-allowed rounded-full border border-magenta/10 bg-magenta/[.035] text-xs text-zinc-600">{i===0?'Current plan':'Coming soon'}</button>
       </div>)}
     </div>
 
