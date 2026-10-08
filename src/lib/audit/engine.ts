@@ -12,7 +12,6 @@ import type {
 
 export const MAX_DISCOVERED_PAGES = 8;
 const USER_AGENT = 'Scoryn-Audit/2.0 (+https://scoryn-eight.vercel.app)';
-const DEFAULT_PAGESPEED_KEY = 'AIzaSyCy1eDqDWE_Z13bXM0yqLOBBhBc9XfwpxI';
 
 const metricInfo: Record<string, { label: string; recommended: string }> = {
   'largest-contentful-paint': { label: 'Largest Contentful Paint', recommended: '< 2.5s' },
@@ -360,7 +359,7 @@ async function runPageSpeed(url: string, strategy: 'mobile' | 'desktop'): Promis
   endpoint.searchParams.set('url', url);
   endpoint.searchParams.set('strategy', strategy);
   for (const category of ['performance', 'seo', 'accessibility', 'best-practices']) endpoint.searchParams.append('category', category);
-  const key = process.env.PAGESPEED_API_KEY || DEFAULT_PAGESPEED_KEY;
+  const key = process.env.PAGESPEED_API_KEY;
   if (key) endpoint.searchParams.set('key', key);
   try {
     const response = await fetchWithTimeout(endpoint.toString(), { headers: { accept: 'application/json' } }, 42_000);
