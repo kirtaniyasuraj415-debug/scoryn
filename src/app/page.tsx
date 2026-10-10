@@ -34,11 +34,11 @@ export default function Home() {
         </div>
 
         <h1 className="font-heading max-w-[860px] text-balance text-[2.2rem] font-bold leading-[.99] tracking-[-.05em] sm:text-[3.5rem] md:text-[4.2rem] lg:text-[4.7rem]">
-          Client websites ka audit <span className="hero-accent-text">30 seconds</span> mein, tumhare branding ke saath.
+          AI-powered website audits. <span className="hero-accent-text">Client-ready in 30 seconds.</span>
         </h1>
 
         <p className="mt-5 max-w-[620px] text-balance text-[13px] leading-6 text-zinc-500 sm:mt-6 sm:text-[15px] sm:leading-7">
-          PageSpeed data ko clear business language mein convert karo, branded report banao, aur client ko ek professional sales-ready deliverable bhejo.
+          Turn PageSpeed data into clear business language, add your branding, and send clients a professional, sales-ready report.
         </p>
 
         <div className="mt-8 w-full sm:mt-9">
