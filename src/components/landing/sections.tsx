@@ -170,7 +170,7 @@ export function WorkflowBentoSection() {
       <SectionLabel>Our workflow</SectionLabel>
       <div className="mx-auto max-w-[720px] text-center">
         <h2 className="font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">How Scoryn makes your client audit workflow easier</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Four steps. Same dark bento proportions as the reference, with Scoryn’s magenta depth and real product workflow.</p>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Four steps from audit to a client-ready report.</p>
       </div>
 
       <div className="mt-14 grid gap-3 lg:grid-cols-12">
@@ -328,7 +328,7 @@ export function UseCasesSection() {
       <SectionLabel>Made for service businesses</SectionLabel>
       <div className="mx-auto max-w-[760px] text-center">
         <h2 className="font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">Use Scoryn before the sale, during the pitch and after the project</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Same compact number-card language as the reference: dark glass, soft burgundy depth, edge light, subtle 3D tilt and animated glow.</p>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Use Scoryn before the sale, during the pitch and after the project.</p>
       </div>
 
       <div className="numbers-reference-grid mt-12 grid gap-3 md:grid-cols-3">
@@ -460,7 +460,7 @@ export function Footer() {
         <p className="mt-2 max-w-md text-xs leading-5 text-zinc-600">Branded website audits for freelancers and agencies.</p>
       </div>
       <div className="flex flex-wrap gap-5 text-zinc-500"><a href="#features">Features</a><a href="#how">Workflow</a><a href="#pricing">Pricing</a></div>
-      <div className="flex flex-wrap gap-5 text-zinc-600"><a href="/login">Login</a><a href="/signup">Signup</a><span className="inline-flex items-center gap-1"><Link2 className="h-3 w-3" />Socials</span></div>
+      <div className="flex flex-wrap gap-5 text-zinc-600"><a href="/login">Login</a><a href="/signup">Signup</a><Link href="/privacy" className="transition hover:text-rose">Privacy</Link><Link href="/terms" className="transition hover:text-rose">Terms</Link><span className="inline-flex items-center gap-1"><Link2 className="h-3 w-3" />Socials</span></div>
     </div>
   </footer>;
 }
