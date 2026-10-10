@@ -241,7 +241,7 @@ export function FeatureSection() {
       <SectionLabel>Key features</SectionLabel>
       <div className="mx-auto max-w-[720px] text-center">
         <h2 className="font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">The four things that make Scoryn useful in real client work</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">No oversized feature wall. Sirf woh capabilities highlight ki gayi hain jo audit ko actual client deliverable banati hain.</p>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Four capabilities that turn a raw audit into a deliverable your client will actually read.</p>
       </div>
 
       <div className="mt-14 grid gap-3 md:grid-cols-2">
@@ -328,7 +328,7 @@ export function UseCasesSection() {
       <SectionLabel>Made for service businesses</SectionLabel>
       <div className="mx-auto max-w-[760px] text-center">
         <h2 className="font-heading text-balance text-3xl font-bold tracking-[-.045em] sm:text-5xl">Use Scoryn before the sale, during the pitch and after the project</h2>
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">Use Scoryn before the sale, during the pitch and after the project.</p>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-500">{'\u00a0'}</p>
       </div>
 
       <div className="numbers-reference-grid mt-12 grid gap-3 md:grid-cols-3">
