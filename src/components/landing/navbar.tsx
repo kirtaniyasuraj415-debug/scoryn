@@ -6,7 +6,8 @@ export function Navbar() {
   return <nav className="relative z-30 mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8 sm:py-6">
     <Link href="/" className="flex items-center gap-2.5 font-heading text-sm font-bold tracking-tight sm:text-base">
       <ScorynMark size={32}/>
-      Scoryn
+      <span>Scoryn</span>
+      <span className="inline-flex rounded-full border border-magenta/25 bg-magenta/[.07] px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-[.15em] text-rose">Beta</span>
     </Link>
 
     <div className="hidden items-center gap-8 text-xs text-zinc-500 md:flex">
