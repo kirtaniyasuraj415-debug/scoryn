@@ -220,12 +220,7 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
           </div>
           <div className={cn("mt-0.5 text-zinc-700",mobile?"text-[10px]":"text-[9px]")}>AI Website Audit</div>
         </div>}
-        {mobile
-          ? <button onClick={()=>setMobileOpen(false)} aria-label="Close navigation" className="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/[.06] bg-white/[.015] text-zinc-500 transition hover:border-magenta/20 hover:bg-magenta/[.04] hover:text-rose"><X className="h-4 w-4"/></button>
-          : <button onClick={toggleCollapsed} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-zinc-700 transition hover:bg-magenta/[.05] hover:text-rose md:grid">
-              {compact?<PanelLeftOpen className="h-4 w-4"/>:<PanelLeftClose className="h-4 w-4"/>}
-            </button>
-        }
+        {mobile&&<button onClick={()=>setMobileOpen(false)} aria-label="Close navigation" className="ml-auto grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/[.06] bg-white/[.015] text-zinc-500 transition hover:border-magenta/20 hover:bg-magenta/[.04] hover:text-rose"><X className="h-4 w-4"/></button>}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -273,6 +268,20 @@ export function DashboardShell({children}:{children:React.ReactNode}) {
     </div>
 
     <div className="fixed inset-y-0 left-0 z-40 hidden md:block"><SidebarPanel/></div>
+    <div className={cn(
+      'fixed top-[18px] z-50 hidden md:block transition-[left] duration-300',
+      collapsed?'left-[48px]':'left-[188px]'
+    )}>
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-label={collapsed?'Expand navigation':'Collapse navigation'}
+        title={collapsed?'Expand navigation':'Collapse navigation'}
+        className="grid h-8 w-8 place-items-center rounded-lg border border-white/[.06] bg-[#0b0b0d] text-zinc-500 shadow-lg transition hover:border-magenta/25 hover:bg-magenta/[.06] hover:text-rose focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-magenta/40"
+      >
+        {collapsed?<PanelLeftOpen className="h-4 w-4"/>:<PanelLeftClose className="h-4 w-4"/>}
+      </button>
+    </div>
 
     <div className={cn(
       'fixed inset-0 top-0 z-[70] md:hidden',
