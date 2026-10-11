@@ -4,12 +4,12 @@
 
 Scoryn merges mobile and desktop PageSpeed audits into one clear dashboard, explains technical issues in plain business language, applies your agency branding, and exports a branded PDF or public share link that clients can open without an account.
 
-Main site: https://scoryn.in
+Main site: https://www.scoryn.in
 
 Key pages:
-- How it works: https://scoryn.in/#how
-- Pricing: https://scoryn.in/#pricing
-- Privacy: https://scoryn.in/privacy
-- Terms: https://scoryn.in/terms
+- How it works: https://www.scoryn.in/#how
+- Pricing: https://www.scoryn.in/#pricing
+- Privacy: https://www.scoryn.in/privacy
+- Terms: https://www.scoryn.in/terms
 
 Ideal for: web agencies, freelancers, and service businesses that audit client websites before a pitch, during cold outreach, or as ongoing monthly health reports.
