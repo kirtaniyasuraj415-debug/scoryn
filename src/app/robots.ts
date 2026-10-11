@@ -3,6 +3,6 @@ import type { MetadataRoute } from 'next';
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: '*', allow: '/' },
-    sitemap: 'https://scoryn.in/sitemap.xml',
+    sitemap: 'https://www.scoryn.in/sitemap.xml',
   };
 }
