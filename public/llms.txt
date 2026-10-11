@@ -1,0 +1,15 @@
+# Scoryn
+
+> AI-powered website audit tool that turns Google PageSpeed data into client-ready branded reports for agencies and freelancers.
+
+Scoryn merges mobile and desktop PageSpeed audits into one clear dashboard, explains technical issues in plain business language, applies your agency branding, and exports a branded PDF or public share link that clients can open without an account.
+
+Main site: https://scoryn.in
+
+Key pages:
+- How it works: https://scoryn.in/#how
+- Pricing: https://scoryn.in/#pricing
+- Privacy: https://scoryn.in/privacy
+- Terms: https://scoryn.in/terms
+
+Ideal for: web agencies, freelancers, and service businesses that audit client websites before a pitch, during cold outreach, or as ongoing monthly health reports.
