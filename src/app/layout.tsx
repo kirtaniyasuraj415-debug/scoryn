@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://scoryn.in'),
+  metadataBase: new URL('https://www.scoryn.in'),
   title: {
     default: 'Scoryn — AI Website Audits & Client-Ready Reports',
     template: '%s — Scoryn'
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    url: 'https://scoryn.in',
+    url: 'https://www.scoryn.in',
     siteName: 'Scoryn',
     title: 'Scoryn — AI Website Audits & Client-Ready Reports',
     description: 'AI-powered website audits that turn PageSpeed data into client-ready branded reports for agencies and freelancers.',
@@ -38,7 +38,7 @@ const orgJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Scoryn',
-  url: 'https://scoryn.in',
+  url: 'https://www.scoryn.in',
   description: 'AI-powered website audit tool that converts PageSpeed data into client-ready branded reports for agencies and freelancers.',
   founder: { '@type': 'Person', name: 'Suraj Kirtaniya' }
 };
